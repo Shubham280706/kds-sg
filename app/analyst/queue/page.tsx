@@ -185,16 +185,15 @@ export default function AnalystQueuePage() {
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="font-bold text-lg text-gray-900">{group.code}</h3>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Category:{' '}
-                        <span
-                          className="font-medium inline-block px-2 py-1 rounded text-white text-xs"
-                          style={{ backgroundColor: group.categoryColor }}
-                        >
-                          {group.categoryName}
-                        </span>
-                      </p>
+                      <h3 className="font-bold text-lg text-gray-900 font-mono mb-3">
+                        {group.code}
+                      </h3>
+                      <span
+                        className="font-medium inline-block px-2 py-1 rounded text-white text-xs"
+                        style={{ backgroundColor: group.categoryColor }}
+                      >
+                        {group.categoryName}
+                      </span>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-600">Tests</p>
