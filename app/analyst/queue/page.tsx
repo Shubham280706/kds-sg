@@ -69,7 +69,7 @@ export default function AnalystQueuePage() {
     if (!map.has(key)) {
       map.set(key, {
         sampleId: test.sampleId,
-        code: test.sample.code,
+        code: test.sample.sampleCode,
         client: test.sample.client,
         categoryName: test.sample.category.name,
         categoryColor: test.sample.category.color,
@@ -93,7 +93,7 @@ export default function AnalystQueuePage() {
     if (!map.has(key)) {
       map.set(key, {
         sampleId: test.sampleId,
-        code: test.sample.code,
+        code: test.sample.sampleCode,
         client: test.sample.client,
         categoryName: test.sample.category.name,
         categoryColor: test.sample.category.color,
