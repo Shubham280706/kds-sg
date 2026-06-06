@@ -93,6 +93,12 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                 Admin
               </div>
               <Link
+                href="/admin/users"
+                className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+              >
+                Users
+              </Link>
+              <Link
                 href="/admin/categories"
                 className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
               >
@@ -168,6 +174,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             )}
             {isAdmin && (
               <>
+                <Link href="/admin/users" className="block px-4 py-2 rounded hover:bg-gray-700">
+                  Users
+                </Link>
                 <Link href="/admin/categories" className="block px-4 py-2 rounded hover:bg-gray-700">
                   Categories
                 </Link>
