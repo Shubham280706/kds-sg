@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [kpis, setKpis] = useState<KPIMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   // Polling for board updates and KPI metrics
   useEffect(() => {
@@ -80,8 +81,18 @@ export default function DashboardPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Sort samples by priority and due date
-  const sortedSamples = [...samples].sort((a, b) => {
+  // Get unique categories from samples
+  const categories = Array.from(
+    new Set(samples.map((s) => s.category?.name).filter(Boolean))
+  ).sort()
+
+  // Filter samples by category
+  const filteredSamples = selectedCategory
+    ? samples.filter((s) => s.category?.name === selectedCategory)
+    : samples
+
+  // Sort by priority and due date
+  const sortedSamples = [...filteredSamples].sort((a, b) => {
     const dateA = new Date(a.dueAt).getTime()
     const dateB = new Date(b.dueAt).getTime()
     return dateA - dateB
@@ -116,12 +127,39 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* Category Filter */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setSelectedCategory(null)}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            selectedCategory === null
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
+          }`}
+        >
+          All Categories
+        </button>
+        {categories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              selectedCategory === category
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       {/* Sample Grid */}
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          All Samples
+          {selectedCategory ? selectedCategory : 'All Samples'}
           <Badge variant="default" className="ml-2">
-            {samples.length}
+            {sortedSamples.length}
           </Badge>
         </h2>
 
