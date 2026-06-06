@@ -158,12 +158,15 @@ export default function DashboardPage() {
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Summary</h3>
         <div className="grid grid-cols-3 gap-4 sm:grid-cols-6 text-sm">
-          {Object.entries(STATUS_LABELS).map(([status, label]) => (
-            <div key={status} className="text-center">
-              <p className="text-gray-600 text-xs font-medium">{label}</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{statusCounts[status]}</p>
-            </div>
-          ))}
+          {Object.entries(STATUS_LABELS).map(([status, label]) => {
+            const count = samples.filter((s) => s.status === status).length
+            return (
+              <div key={status} className="text-center">
+                <p className="text-gray-600 text-xs font-medium">{label}</p>
+                <p className="text-xl font-bold text-gray-900 mt-1">{count}</p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
