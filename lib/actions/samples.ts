@@ -121,9 +121,18 @@ export async function createSample(data: {
         }
       })
       await db.insert(sampleTests).values(testInsertValues)
+
+      // Check if any tests have assignments
+      const hasAssignments = testInsertValues.some((t) => t.assignedTo !== null)
+
+      // If tests are assigned, update status to 'assigned' and write event
+      if (hasAssignments) {
+        await db.update(samples).set({ status: 'assigned' }).where(eq(samples.id, sampleId))
+        await writeStatusEvent(sampleId, 'registered', 'assigned', userId, 'Tests assigned to analysts')
+      }
     }
 
-    // Write status event
+    // Write registration event
     await writeStatusEvent(sampleId, 'none', 'registered', userId, 'Sample registered')
 
     return { success: true, sampleCode, sampleId }
@@ -216,6 +225,21 @@ export async function completeTest(
       })
       .where(eq(sampleTests.id, testId))
 
+    // Get current sample status
+    const sample = await db.query.samples.findFirst({
+      where: eq(samples.id, sampleId),
+    })
+
+    if (!sample) {
+      return { success: false, error: 'Sample not found' }
+    }
+
+    // If sample is in 'assigned' status, auto-advance to 'in_analysis'
+    if (sample.status === 'assigned') {
+      await db.update(samples).set({ status: 'in_analysis' }).where(eq(samples.id, sampleId))
+      await writeStatusEvent(sampleId, 'assigned', 'in_analysis', userId, 'First test completed')
+    }
+
     // Check if all tests are done
     const pendingTests = await db.query.sampleTests.findMany({
       where: and(eq(sampleTests.sampleId, sampleId), ({ not, eq: dbEq }) =>
@@ -225,10 +249,10 @@ export async function completeTest(
 
     // If all done, auto-advance to under_review
     if (pendingTests.length === 0) {
-      const sample = await db.query.samples.findFirst({
+      const currentSample = await db.query.samples.findFirst({
         where: eq(samples.id, sampleId),
       })
-      if (sample && sample.status === 'in_analysis') {
+      if (currentSample && currentSample.status === 'in_analysis') {
         await db.update(samples).set({ status: 'under_review' }).where(eq(samples.id, sampleId))
         await writeStatusEvent(sampleId, 'in_analysis', 'under_review', userId, 'All tests completed')
       }
