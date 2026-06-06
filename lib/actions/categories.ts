@@ -3,11 +3,11 @@
 import { getDb } from '@/db'
 import { categories } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import { getSession } from 'next-auth/react'
+import { auth } from '@/auth/authOptions'
 
 async function checkAdminPermission() {
-  const session = await getSession()
-  if (!session?.user || session.user.role !== 'admin') {
+  const session = await auth()
+  if (!session?.user || (session.user as any).role !== 'admin') {
     throw new Error('Unauthorized: Admin access required')
   }
 }

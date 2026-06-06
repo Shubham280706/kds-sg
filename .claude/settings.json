@@ -18,7 +18,8 @@
       "Bash(cat > *)",
       "Bash(npm install *)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "/Users/shubham/coding/KDS-SG/.git",

@@ -3,12 +3,19 @@ import { categories } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { CategoriesClient } from '@/components/admin/CategoriesClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CategoriesPage() {
-  const db = await getDb()
-  const data = await db.query.categories.findMany({
-    where: eq(categories.active, true),
-    orderBy: (categories, { asc }) => [asc(categories.code)],
-  })
+  let data: any[] = []
+  try {
+    const db = await getDb()
+    data = await db.query.categories.findMany({
+      where: eq(categories.active, true),
+      orderBy: (categories, { asc }) => [asc(categories.code)],
+    })
+  } catch (error) {
+    console.error('Failed to fetch categories:', error)
+  }
 
   return (
     <div className="space-y-6">
