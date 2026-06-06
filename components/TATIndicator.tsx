@@ -3,10 +3,9 @@ import { Badge } from '@/components/ui/badge'
 interface TATIndicatorProps {
   dueAt: Date
   createdAt: Date
-  status: string
 }
 
-export function TATIndicator({ dueAt, createdAt, status }: TATIndicatorProps) {
+export function TATIndicator({ dueAt, createdAt }: TATIndicatorProps) {
   const now = new Date()
   const timeRemaining = dueAt.getTime() - now.getTime()
   const totalTime = dueAt.getTime() - createdAt.getTime()

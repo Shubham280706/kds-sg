@@ -10,12 +10,17 @@ interface Sample {
   client: string
   category: { id: number; name: string; color: string }
   status: string
-  sampleTests: Array<{ id: number; status: string; assignedToUser?: { name: string } | null }>
+  sampleTests: Array<{
+    id: number
+    testId: number
+    status: string
+    test: { name: string }
+    assignedToUser?: { name: string } | null
+  }>
   dueAt: Date
   createdAt: Date
 }
 
-const STATUS_ORDER = ['registered', 'assigned', 'in_analysis', 'under_review', 'approved', 'reported']
 const STATUS_LABELS: Record<string, string> = {
   registered: 'Registered',
   assigned: 'Assigned',
@@ -53,13 +58,28 @@ export default function DashboardPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const samplesByStatus = STATUS_ORDER.reduce(
+  // Sort samples by due date (urgent first)
+  const sortedSamples = [...samples].sort((a, b) => {
+    const dateA = new Date(a.dueAt).getTime()
+    const dateB = new Date(b.dueAt).getTime()
+    return dateA - dateB
+  })
+
+  // Count by status
+  const statusCounts = Object.keys(STATUS_LABELS).reduce(
     (acc, status) => {
-      acc[status] = samples.filter((s) => s.status === status)
+      acc[status] = samples.filter((s) => s.status === status).length
       return acc
     },
-    {} as Record<string, Sample[]>
+    {} as Record<string, number>
   )
+
+  const readyForReview = samples.filter((s) => s.status === 'approved').length
+  const overdue = samples.filter((s) => {
+    const now = new Date().getTime()
+    const dueTime = new Date(s.dueAt).getTime()
+    return dueTime < now && s.status !== 'reported' && s.status !== 'closed'
+  }).length
 
   if (isLoading) {
     return <div className="text-center py-12">Loading board...</div>
@@ -67,9 +87,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">KDS Board</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Highlights & Notes</h1>
           <p className="text-gray-600 mt-2">Real-time sample tracking</p>
         </div>
         {lastUpdated && (
@@ -79,70 +100,74 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Status Columns */}
-      <div className="grid grid-cols-6 gap-4 overflow-x-auto pb-4">
-        {STATUS_ORDER.map((status) => {
-          const columnSamples = samplesByStatus[status]
-          return (
-            <div key={status} className="flex-shrink-0 w-80">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                {/* Column Header */}
-                <div className="mb-4 pb-3 border-b border-gray-200">
-                  <h2 className="font-semibold text-gray-900">
-                    {STATUS_LABELS[status]}
-                    <Badge variant="default" className="ml-2 text-xs">
-                      {columnSamples.length}
-                    </Badge>
-                  </h2>
-                </div>
-
-                {/* Sample Cards */}
-                <div className="space-y-3">
-                  {columnSamples.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500 text-sm">No samples</p>
-                    </div>
-                  ) : (
-                    columnSamples.map((sample) => {
-                      const completedTests = sample.sampleTests.filter(
-                        (t) => t.status === 'done'
-                      ).length
-                      const totalTests = sample.sampleTests.length
-                      const analyst = sample.sampleTests.find((t) => t.assignedToUser)
-                        ?.assignedToUser?.name
-
-                      return (
-                        <SampleCard
-                          key={sample.id}
-                          id={sample.id}
-                          code={sample.code}
-                          client={sample.client}
-                          categoryName={sample.category.name}
-                          categoryColor={sample.category.color}
-                          status={sample.status}
-                          completedTests={completedTests}
-                          totalTests={totalTests}
-                          assignedAnalyst={analyst}
-                          dueAt={new Date(sample.dueAt)}
-                          createdAt={new Date(sample.createdAt)}
-                        />
-                      )
-                    })
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        })}
+      {/* KPI Strip */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">Registered Today</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.registered}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">Ready for Review</p>
+          <p className="text-2xl font-bold text-green-600 mt-1">{readyForReview}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">In Analysis</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{statusCounts.in_analysis}</p>
+        </div>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <p className="text-xs text-gray-600 font-semibold uppercase">Overdue</p>
+          <p className={`text-2xl font-bold mt-1 ${overdue > 0 ? 'text-red-600' : 'text-gray-600'}`}>
+            {overdue}
+          </p>
+        </div>
       </div>
 
-      {/* Stats Footer */}
+      {/* Sample Grid */}
+      <div>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          All Samples
+          <Badge variant="default" className="ml-2">
+            {samples.length}
+          </Badge>
+        </h2>
+
+        {samples.length === 0 ? (
+          <div className="bg-gray-50 rounded-lg p-12 text-center border border-gray-200">
+            <p className="text-gray-500">No samples yet. Register one to get started.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 auto-rows-max">
+            {sortedSamples.map((sample) => (
+              <SampleCard
+                key={sample.id}
+                id={sample.id}
+                code={sample.code}
+                client={sample.client}
+                categoryName={sample.category.name}
+                categoryColor={sample.category.color}
+                status={sample.status}
+                tests={sample.sampleTests.map((st) => ({
+                  id: st.id,
+                  name: st.test.name,
+                  status: st.status,
+                  assignedToUser: st.assignedToUser,
+                }))}
+                dueAt={new Date(sample.dueAt)}
+                createdAt={new Date(sample.createdAt)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Status Summary Footer */}
       <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <div className="grid grid-cols-6 gap-4 text-sm">
-          {STATUS_ORDER.map((status) => (
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Summary</h3>
+        <div className="grid grid-cols-3 gap-4 sm:grid-cols-6 text-sm">
+          {Object.entries(STATUS_LABELS).map(([status, label]) => (
             <div key={status} className="text-center">
-              <p className="text-gray-600">{STATUS_LABELS[status]}</p>
-              <p className="text-2xl font-bold text-gray-900">{samplesByStatus[status].length}</p>
+              <p className="text-gray-600 text-xs font-medium">{label}</p>
+              <p className="text-xl font-bold text-gray-900 mt-1">{statusCounts[status]}</p>
             </div>
           ))}
         </div>

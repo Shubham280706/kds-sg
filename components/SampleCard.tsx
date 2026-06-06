@@ -1,9 +1,15 @@
 'use client'
 
-import { TestProgressBar } from '@/components/TestProgressBar'
 import { TATIndicator } from '@/components/TATIndicator'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+
+interface Test {
+  id: number
+  name: string
+  status: string
+  assignedToUser?: { name: string } | null
+}
 
 interface SampleCardProps {
   id: number
@@ -12,56 +18,129 @@ interface SampleCardProps {
   categoryName: string
   categoryColor: string
   status: string
-  completedTests: number
-  totalTests: number
-  assignedAnalyst?: string
+  tests: Test[]
   dueAt: Date
   createdAt: Date
 }
 
-const statusColors: Record<string, string> = {
-  registered: 'bg-gray-50 border-gray-200',
-  assigned: 'bg-blue-50 border-blue-200',
-  in_analysis: 'bg-purple-50 border-purple-200',
-  under_review: 'bg-yellow-50 border-yellow-200',
-  approved: 'bg-green-50 border-green-200',
-  reported: 'bg-emerald-50 border-emerald-200',
-  closed: 'bg-gray-100 border-gray-300',
+const statusBorderColors: Record<string, string> = {
+  registered: 'border-l-blue-500',
+  assigned: 'border-l-blue-500',
+  in_analysis: 'border-l-amber-500',
+  under_review: 'border-l-purple-500',
+  approved: 'border-l-green-500',
+  reported: 'border-l-emerald-500',
+  closed: 'border-l-gray-400',
+}
+
+const statusBgColors: Record<string, string> = {
+  registered: 'bg-blue-50',
+  assigned: 'bg-blue-50',
+  in_analysis: 'bg-amber-50',
+  under_review: 'bg-purple-50',
+  approved: 'bg-green-50',
+  reported: 'bg-emerald-50',
+  closed: 'bg-gray-50',
 }
 
 export function SampleCard(props: SampleCardProps) {
+  const completedTests = props.tests.filter((t) => t.status === 'done').length
+  const totalTests = props.tests.length
+  const completionPercent = totalTests > 0 ? Math.round((completedTests / totalTests) * 100) : 0
+
+  // Determine color based on completion and TAT
+  let accentColor = statusBorderColors[props.status] || 'border-l-gray-400'
+  let bgColor = statusBgColors[props.status] || 'bg-gray-50'
+
+  // If all tests done, use green
+  if (completedTests === totalTests && totalTests > 0) {
+    accentColor = 'border-l-green-500'
+    bgColor = 'bg-green-50'
+  }
+
   return (
     <Link href={`/samples/${props.id}`}>
       <div
-        className={`p-4 border rounded-lg cursor-pointer hover:shadow-lg transition-all ${
-          statusColors[props.status] || 'bg-white border-gray-200'
-        }`}
+        className={`p-5 border-l-4 border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-all ${accentColor} ${bgColor} h-full flex flex-col`}
       >
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <h3 className="font-bold text-lg text-gray-900">{props.code}</h3>
-            <p className="text-sm text-gray-600">{props.client}</p>
+        {/* Header */}
+        <div className="mb-4">
+          <div className="flex items-start justify-between mb-2">
+            <div className="flex-1">
+              <h3 className="font-bold text-lg text-gray-900">Sample</h3>
+              <p className="font-mono text-sm font-semibold text-gray-800 mt-1">{props.code}</p>
+              <p className="text-xs text-gray-600 mt-1">{props.client}</p>
+            </div>
+            <div
+              className="w-4 h-4 rounded-full flex-shrink-0"
+              style={{ backgroundColor: props.categoryColor }}
+              title={props.categoryName}
+            />
           </div>
-          <div
-            className="w-3 h-3 rounded-full mt-1"
-            style={{ backgroundColor: props.categoryColor }}
-            title={props.categoryName}
-          />
+          <p className="text-xs text-gray-600 mt-2">{props.categoryName}</p>
         </div>
 
-        <div className="space-y-2">
-          <div>
-            <TestProgressBar completed={props.completedTests} total={props.totalTests} />
+        {/* Tests List */}
+        {totalTests > 0 && (
+          <div className="mb-4 p-3 bg-white bg-opacity-50 rounded border border-gray-200 flex-1">
+            <p className="text-xs font-semibold text-gray-700 mb-2">
+              Tests ({completedTests}/{totalTests})
+            </p>
+            <div className="space-y-2">
+              {props.tests.map((test, idx) => (
+                <div key={test.id} className="flex items-start gap-2 text-xs">
+                  <span className="flex-shrink-0 w-4 text-center">
+                    {test.status === 'done' ? '✓' : '◯'}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-xs font-medium ${
+                        test.status === 'done'
+                          ? 'text-gray-600 line-through'
+                          : 'text-gray-900'
+                      }`}
+                    >
+                      {idx + 1}. {test.name}
+                    </p>
+                    {test.assignedToUser && (
+                      <p className="text-gray-600 text-xs mt-0.5">
+                        {test.assignedToUser.name}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+        )}
 
-          <div className="flex items-center justify-between">
-            <Badge variant="default">{props.status.replace(/_/g, ' ')}</Badge>
-            <TATIndicator dueAt={props.dueAt} createdAt={props.createdAt} status={props.status} />
+        {/* Progress Bar */}
+        {totalTests > 0 && (
+          <div className="mb-3">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div
+                className={`h-1.5 rounded-full transition-all ${
+                  completionPercent === 100
+                    ? 'bg-green-500'
+                    : completionPercent >= 50
+                      ? 'bg-blue-500'
+                      : 'bg-amber-500'
+                }`}
+                style={{ width: `${completionPercent}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-600 mt-1">
+              {completionPercent}% complete
+            </p>
           </div>
+        )}
 
-          {props.assignedAnalyst && (
-            <p className="text-xs text-gray-600">→ {props.assignedAnalyst}</p>
-          )}
+        {/* Footer */}
+        <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
+          <Badge variant="default" className="text-xs">
+            {props.status.replace(/_/g, ' ')}
+          </Badge>
+          <TATIndicator dueAt={props.dueAt} createdAt={props.createdAt} />
         </div>
       </div>
     </Link>
