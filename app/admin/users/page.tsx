@@ -16,7 +16,7 @@ interface User {
   active: boolean
 }
 
-const ROLES = ['admin', 'front_desk', 'analyst', 'reviewer', 'signatory']
+const ROLES = ['admin', 'analyst']
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])

@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db'
 import { samples, sampleTests, statusEvents, tests, categories } from '@/db/schema'
-import { eq, and, gte, like, desc } from 'drizzle-orm'
+import { eq, and, like, desc } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 // ===== Helpers =====
@@ -68,7 +68,7 @@ export async function createSample(data: {
   remarks?: string
 }) {
   try {
-    const { userId } = await checkAuth(['admin', 'front_desk'])
+    const { userId } = await checkAuth(['admin', 'analyst'])
     const db = await getDb()
 
     // Validate category exists

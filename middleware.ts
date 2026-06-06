@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-type UserRole = 'admin' | 'front_desk' | 'analyst' | 'reviewer' | 'signatory'
+type UserRole = 'admin' | 'analyst'
 
 interface RouteConfig {
   path: string
@@ -10,26 +10,16 @@ interface RouteConfig {
 }
 
 const PROTECTED_ROUTES: RouteConfig[] = [
-  // Admin only
+  // Admin only - master data
   { path: '/admin', requiredRoles: ['admin'] },
 
-  // Sample intake - front_desk or admin
-  { path: '/samples/inward', requiredRoles: ['admin', 'front_desk'] },
-
-  // Sample assignment - admin
-  { path: '/samples', requiredRoles: ['admin'] },
-
-  // Analyst queue - analyst or admin
+  // Sample intake, assignment, queue - both roles
+  { path: '/samples/inward', requiredRoles: ['admin', 'analyst'] },
+  { path: '/samples', requiredRoles: ['admin', 'analyst'] },
   { path: '/analyst/queue', requiredRoles: ['admin', 'analyst'] },
 
-  // Reviewer queue - reviewer or admin
-  { path: '/reviewer/queue', requiredRoles: ['admin', 'reviewer'] },
-
-  // Signatory queue - signatory or admin
-  { path: '/signatory/queue', requiredRoles: ['admin', 'signatory'] },
-
-  // Dashboard - anyone authenticated
-  { path: '/dashboard', requiredRoles: ['admin', 'front_desk', 'analyst', 'reviewer', 'signatory'] },
+  // Dashboard - both roles
+  { path: '/dashboard', requiredRoles: ['admin', 'analyst'] },
 ]
 
 export async function middleware(request: NextRequest) {
@@ -59,7 +49,5 @@ export const config = {
     '/dashboard/:path*',
     '/samples/:path*',
     '/analyst/:path*',
-    '/reviewer/:path*',
-    '/signatory/:path*',
   ],
 }
