@@ -30,18 +30,17 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) => pathname.startsWith(href)
 
-  const NavLink = ({ href, icon, label }: { href: string; icon: string; label: string }) => {
+  const NavLink = ({ href, label }: { href: string; label: string }) => {
     const active = isActive(href)
     return (
       <Link href={href}>
         <div
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 cursor-pointer group ${
+          className={`px-3 py-2.5 rounded-lg transition-all duration-150 cursor-pointer group ${
             active
               ? 'bg-blue-600 text-white border-l-4 border-blue-400'
               : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
           }`}
         >
-          <span className="text-lg w-5">{icon}</span>
           <span className="text-sm font-medium">{label}</span>
         </div>
       </Link>
@@ -64,10 +63,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <div className="hidden md:flex md:flex-col md:w-60 bg-gradient-to-b from-gray-900 to-gray-950 text-white border-r border-gray-800">
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-800">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="text-2xl">🧪</div>
-            <h1 className="text-xl font-bold tracking-tight">KDS Lab</h1>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight mb-1">KDS Lab</h1>
           <p className="text-xs text-gray-500">Sample Tracking System</p>
         </div>
 
@@ -77,10 +73,10 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             Workspace
           </div>
 
-          <NavLink href="/dashboard" icon="📊" label="KDS Board" />
-          <NavLink href="/samples" icon="📋" label="Samples" />
-          <NavLink href="/samples/inward" icon="➕" label="Register Sample" />
-          <NavLink href="/analyst/queue" icon="🧬" label="My Queue" />
+          <NavLink href="/dashboard" label="KDS Board" />
+          <NavLink href="/samples" label="Samples" />
+          <NavLink href="/samples/inward" label="Register Sample" />
+          <NavLink href="/analyst/queue" label="My Queue" />
 
           {/* Admin Section */}
           {isAdmin && (
@@ -88,9 +84,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               <div className="text-xs font-semibold text-gray-600 uppercase tracking-widest my-4 px-3 pt-2 border-t border-gray-800">
                 Admin
               </div>
-              <NavLink href="/admin/users" icon="👥" label="Users" />
-              <NavLink href="/admin/categories" icon="🏷️" label="Categories" />
-              <NavLink href="/admin/tests" icon="🧪" label="Tests" />
+              <NavLink href="/admin/users" label="Users" />
+              <NavLink href="/admin/categories" label="Categories" />
+              <NavLink href="/admin/tests" label="Tests" />
             </>
           )}
         </nav>
@@ -120,10 +116,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-gradient-to-r from-gray-900 to-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🧪</span>
-            <h1 className="text-lg font-bold">KDS Lab</h1>
-          </div>
+          <h1 className="text-lg font-bold">KDS Lab</h1>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-white hover:text-gray-300"
@@ -139,22 +132,22 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               href="/dashboard"
               className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
             >
-              📊 KDS Board
+              KDS Board
             </Link>
             <Link href="/samples" className="block px-3 py-2 rounded hover:bg-gray-800 transition-all">
-              📋 Samples
+              Samples
             </Link>
             <Link
               href="/samples/inward"
               className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
             >
-              ➕ Register
+              Register Sample
             </Link>
             <Link
               href="/analyst/queue"
               className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
             >
-              🧬 My Queue
+              My Queue
             </Link>
             {isAdmin && (
               <>
@@ -165,19 +158,19 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
                   href="/admin/users"
                   className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
                 >
-                  👥 Users
+                  Users
                 </Link>
                 <Link
                   href="/admin/categories"
                   className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
                 >
-                  🏷️ Categories
+                  Categories
                 </Link>
                 <Link
                   href="/admin/tests"
                   className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
                 >
-                  🧪 Tests
+                  Tests
                 </Link>
               </>
             )}
