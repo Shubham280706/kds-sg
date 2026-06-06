@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db'
 import { samples, sampleTests, statusEvents, tests, categories } from '@/db/schema'
-import { eq, and, like, desc } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 // ===== Helpers =====
@@ -66,6 +66,7 @@ export async function createSample(data: {
   quantity?: string
   condition?: string
   remarks?: string
+  testAssignments?: Array<{ testId: number; assignedTo: number | null }>
 }) {
   try {
     const { userId } = await checkAuth(['admin', 'analyst'])
@@ -110,14 +111,16 @@ export async function createSample(data: {
     })
 
     if (categoryTests.length > 0) {
-      await db.insert(sampleTests).values(
-        categoryTests.map((test) => ({
+      const testInsertValues = categoryTests.map((test) => {
+        const assignment = data.testAssignments?.find((a) => a.testId === test.id)
+        return {
           sampleId: sampleId,
           testId: test.id,
-          assignedTo: null,
+          assignedTo: assignment?.assignedTo || null,
           status: 'pending' as const,
-        }))
-      )
+        }
+      })
+      await db.insert(sampleTests).values(testInsertValues)
     }
 
     // Write status event

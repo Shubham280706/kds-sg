@@ -147,6 +147,10 @@ export default function SampleInwardPage() {
         quantity: formData.quantity || undefined,
         condition: formData.condition || undefined,
         remarks: formData.remarks || undefined,
+        testAssignments: testAssignments.map((ta) => ({
+          testId: ta.testId,
+          assignedTo: ta.assignedTo,
+        })),
       })
 
       if (result.success) {
