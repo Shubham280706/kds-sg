@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db'
 import { samples } from '@/db/schema'
-import { eq, and, lt, notInArray } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 async function checkAuth() {
