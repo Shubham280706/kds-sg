@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 
 interface Sample {
   id: number
-  code: string
+  sampleCode: string
   client: string
   category: { name: string }
   status: string
@@ -54,7 +54,7 @@ export default function SamplesPage() {
                   <tr key={s.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 font-medium">
                       <Link href={`/samples/${s.id}`} className="text-blue-600 hover:underline">
-                        {s.code}
+                        {s.sampleCode}
                       </Link>
                     </td>
                     <td className="py-3 px-4">{s.client}</td>
