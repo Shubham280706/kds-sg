@@ -17,7 +17,22 @@ interface SampleTest {
   resultUnit: string | null
   method: string | null
   test: { id: number; name: string; unit: string }
-  sample: { id: number; code: string; client: string; dueAt: Date }
+  sample: {
+    id: number
+    code: string
+    client: string
+    dueAt: Date
+    category: { id: number; name: string; color: string }
+  }
+}
+
+interface SampleGroup {
+  sampleId: number
+  code: string
+  client: string
+  categoryName: string
+  categoryColor: string
+  tests: SampleTest[]
 }
 
 export default function AnalystQueuePage() {
@@ -43,6 +58,25 @@ export default function AnalystQueuePage() {
     const interval = setInterval(fetchTests, 3000)
     return () => clearInterval(interval)
   }, [])
+
+  // Group tests by sample
+  const sampleGroups = Array.from(
+    allTests.reduce((map, test) => {
+      const key = test.sampleId
+      if (!map.has(key)) {
+        map.set(key, {
+          sampleId: test.sampleId,
+          code: test.sample.code,
+          client: test.sample.client,
+          categoryName: test.sample.category.name,
+          categoryColor: test.sample.category.color,
+          tests: [],
+        })
+      }
+      map.get(key)!.tests.push(test)
+      return map
+    }, new Map<number, SampleGroup>())
+  ).values()
 
   const pendingTests = allTests.filter((t) => t.status !== 'done')
   const doneTests = allTests.filter((t) => t.status === 'done')
@@ -98,7 +132,7 @@ export default function AnalystQueuePage() {
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">My Test Queue</h1>
-        <p className="text-gray-600 mt-2">Tests assigned to you</p>
+        <p className="text-gray-600 mt-2">Tests assigned to you, organized by sample</p>
       </div>
 
       {error && (
@@ -112,7 +146,7 @@ export default function AnalystQueuePage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex justify-between items-center mb-3">
-              <p className="font-medium text-gray-900">Progress</p>
+              <p className="font-medium text-gray-900">Overall Progress</p>
               <span className="text-2xl font-bold text-gray-900">
                 {completedCount} / {totalCount}
               </span>
@@ -127,196 +161,244 @@ export default function AnalystQueuePage() {
         </Card>
       )}
 
-      {/* Pending Tests */}
-      <Card>
-        <CardHeader>
-          <h2 className="text-lg font-semibold">
-            Pending{' '}
-            <Badge variant={pendingTests.length > 0 ? 'warning' : 'default'}>
-              {pendingTests.length}
-            </Badge>
-          </h2>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {pendingTests.length === 0 ? (
-            <p className="text-gray-500">No pending tests</p>
-          ) : (
-            pendingTests.map((st) => {
-              const isCompleting = completingTests.has(st.id)
-              const isDone = st.status === 'done'
-
-              return (
-                <div
-                  key={st.id}
-                  className={`border rounded-lg transition-all ${
-                    isDone ? 'bg-green-50 border-green-200' : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  {/* Clickable Checkbox Row */}
-                  <div
-                    className={`p-4 cursor-pointer flex items-center gap-4 ${
-                      expandedTest === st.id ? 'bg-blue-50' : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() =>
-                      !isDone && setExpandedTest(expandedTest === st.id ? null : st.id)
-                    }
-                  >
-                    {/* Animated Checkbox */}
-                    <div className="flex-shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={isDone}
-                        onChange={() => {}}
-                        className={`w-5 h-5 cursor-pointer transition-all ${
-                          isDone
-                            ? 'accent-green-600'
-                            : 'accent-blue-600'
-                        }`}
-                        disabled={isDone}
-                      />
-                    </div>
-
-                    {/* Test Info */}
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`font-semibold ${
-                          isDone
-                            ? 'text-gray-600 line-through'
-                            : 'text-gray-900'
-                        }`}
-                      >
-                        {st.test.name} — {st.test.unit}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {st.sample.code} · {st.sample.client}
-                      </p>
-                    </div>
-
-                    {/* Expand Indicator */}
-                    {!isDone && (
-                      <span className="text-gray-400 text-lg">
-                        {expandedTest === st.id ? '▼' : '▶'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Expanded Form */}
-                  {expandedTest === st.id && !isDone && (
-                    <div className="p-4 border-t bg-white space-y-4 animate-in slide-in-from-top">
-                      <div>
-                        <Label htmlFor={`value-${st.id}`}>Result Value *</Label>
-                        <Input
-                          id={`value-${st.id}`}
-                          type="text"
-                          value={resultData[st.id]?.value || ''}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [st.id]: {
-                                ...resultData[st.id],
-                                value: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="e.g., 7.5"
-                          autoFocus
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`unit-${st.id}`}>Unit</Label>
-                        <Input
-                          id={`unit-${st.id}`}
-                          value={resultData[st.id]?.unit || st.test.unit}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [st.id]: {
-                                ...resultData[st.id],
-                                unit: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder={st.test.unit}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`method-${st.id}`}>Method (Optional)</Label>
-                        <Input
-                          id={`method-${st.id}`}
-                          value={resultData[st.id]?.method || ''}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [st.id]: {
-                                ...resultData[st.id],
-                                method: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="e.g., Glass electrode"
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleCompleteTest(st.id, st.sampleId)}
-                          disabled={!resultData[st.id]?.value || isCompleting}
-                          size="sm"
-                        >
-                          {isCompleting ? 'Marking...' : 'Mark as Done'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setExpandedTest(null)
-                            setError('')
-                          }}
-                          disabled={isCompleting}
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Completed Tests */}
-      {doneTests.length > 0 && (
+      {/* Tests Grouped by Sample */}
+      {totalCount === 0 ? (
         <Card>
-          <CardHeader>
-            <h2 className="text-lg font-semibold">
-              Completed <Badge variant="success">{doneTests.length}</Badge>
-            </h2>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {doneTests.map((st) => (
-              <div
-                key={st.id}
-                className="p-3 bg-green-50 border border-green-200 rounded flex items-center gap-3"
-              >
-                <input
-                  type="checkbox"
-                  checked={true}
-                  disabled
-                  className="cursor-default accent-green-600"
-                />
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 line-through text-gray-600">
-                    {st.test.name}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {st.resultValue} {st.resultUnit || st.test.unit}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <CardContent className="pt-6">
+            <p className="text-center text-gray-500">No tests assigned to you yet</p>
           </CardContent>
         </Card>
+      ) : (
+        <div className="space-y-4">
+          {Array.from(sampleGroups).map((group) => {
+            const samplePendingTests = group.tests.filter((t) => t.status !== 'done')
+            const sampleDoneTests = group.tests.filter((t) => t.status === 'done')
+            const sampleCompleted = sampleDoneTests.length
+            const sampleTotal = group.tests.length
+
+            return (
+              <Card key={group.sampleId} className="overflow-hidden">
+                {/* Sample Header */}
+                <div
+                  className="p-4 border-b"
+                  style={{ backgroundColor: `${group.categoryColor}15` }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-bold text-lg text-gray-900">{group.code}</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Client: <span className="font-medium">{group.client}</span>
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Category:{' '}
+                        <span
+                          className="font-medium inline-block px-2 py-1 rounded text-white text-xs mt-1"
+                          style={{ backgroundColor: group.categoryColor }}
+                        >
+                          {group.categoryName}
+                        </span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-600">Tests</p>
+                      <p className="text-lg font-bold text-gray-900">
+                        {sampleCompleted}/{sampleTotal}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Sample Progress Bar */}
+                  <div className="mt-3 w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-green-600 h-2 rounded-full transition-all"
+                      style={{ width: `${(sampleCompleted / sampleTotal) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Tests */}
+                <CardContent className="p-0">
+                  {/* Pending Tests */}
+                  {samplePendingTests.length > 0 && (
+                    <div className="divide-y">
+                      {samplePendingTests.map((st) => {
+                        const isCompleting = completingTests.has(st.id)
+
+                        return (
+                          <div
+                            key={st.id}
+                            className="border-b last:border-b-0"
+                          >
+                            {/* Test Row */}
+                            <div
+                              className="p-4 cursor-pointer flex items-center gap-4 hover:bg-gray-50 transition-colors"
+                              onClick={() =>
+                                setExpandedTest(expandedTest === st.id ? null : st.id)
+                              }
+                            >
+                              {/* Checkbox */}
+                              <div className="flex-shrink-0">
+                                <input
+                                  type="checkbox"
+                                  checked={false}
+                                  onChange={() => {}}
+                                  className="w-5 h-5 cursor-pointer accent-blue-600"
+                                />
+                              </div>
+
+                              {/* Test Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-900">
+                                  {st.test.name}
+                                </p>
+                                <p className="text-sm text-gray-600 mt-0.5">
+                                  Unit: <span className="font-mono">{st.test.unit}</span>
+                                </p>
+                              </div>
+
+                              {/* Expand Indicator */}
+                              <span className="text-gray-400 text-lg flex-shrink-0">
+                                {expandedTest === st.id ? '▼' : '▶'}
+                              </span>
+                            </div>
+
+                            {/* Expanded Form */}
+                            {expandedTest === st.id && (
+                              <div className="p-4 bg-blue-50 border-t space-y-4">
+                                <div>
+                                  <Label htmlFor={`value-${st.id}`}>
+                                    Result Value *
+                                  </Label>
+                                  <Input
+                                    id={`value-${st.id}`}
+                                    type="text"
+                                    value={resultData[st.id]?.value || ''}
+                                    onChange={(e) =>
+                                      setResultData({
+                                        ...resultData,
+                                        [st.id]: {
+                                          ...resultData[st.id],
+                                          value: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    placeholder="e.g., 7.5"
+                                    autoFocus
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`unit-${st.id}`}>Unit</Label>
+                                  <Input
+                                    id={`unit-${st.id}`}
+                                    value={
+                                      resultData[st.id]?.unit || st.test.unit
+                                    }
+                                    onChange={(e) =>
+                                      setResultData({
+                                        ...resultData,
+                                        [st.id]: {
+                                          ...resultData[st.id],
+                                          unit: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    placeholder={st.test.unit}
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor={`method-${st.id}`}>
+                                    Method (Optional)
+                                  </Label>
+                                  <Input
+                                    id={`method-${st.id}`}
+                                    value={
+                                      resultData[st.id]?.method || ''
+                                    }
+                                    onChange={(e) =>
+                                      setResultData({
+                                        ...resultData,
+                                        [st.id]: {
+                                          ...resultData[st.id],
+                                          method: e.target.value,
+                                        },
+                                      })
+                                    }
+                                    placeholder="e.g., Glass electrode"
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() =>
+                                      handleCompleteTest(st.id, st.sampleId)
+                                    }
+                                    disabled={
+                                      !resultData[st.id]?.value ||
+                                      isCompleting
+                                    }
+                                    size="sm"
+                                  >
+                                    {isCompleting
+                                      ? 'Marking...'
+                                      : 'Mark as Done'}
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      setExpandedTest(null)
+                                      setError('')
+                                    }}
+                                    disabled={isCompleting}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Completed Tests */}
+                  {sampleDoneTests.length > 0 && (
+                    <div className="bg-green-50 divide-y">
+                      {sampleDoneTests.map((st) => (
+                        <div
+                          key={st.id}
+                          className="p-4 flex items-start gap-4"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={true}
+                            disabled
+                            className="cursor-default accent-green-600 mt-1"
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-600 line-through">
+                              {st.test.name}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2">
+                              <span className="font-semibold">Result:</span>{' '}
+                              {st.resultValue} {st.resultUnit || st.test.unit}
+                            </p>
+                            {st.method && (
+                              <p className="text-sm text-gray-600">
+                                <span className="font-semibold">Method:</span>{' '}
+                                {st.method}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       )}
 
       {/* All Complete Banner */}

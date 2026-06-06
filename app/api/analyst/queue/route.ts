@@ -18,7 +18,11 @@ export async function GET() {
       where: eq(sampleTests.assignedTo, userId),
       with: {
         test: true,
-        sample: true,
+        sample: {
+          with: {
+            category: true,
+          },
+        },
       },
     })
 
