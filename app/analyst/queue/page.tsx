@@ -60,23 +60,23 @@ export default function AnalystQueuePage() {
   }, [])
 
   // Group tests by sample
-  const sampleGroups = Array.from(
-    allTests.reduce((map, test) => {
-      const key = test.sampleId
-      if (!map.has(key)) {
-        map.set(key, {
-          sampleId: test.sampleId,
-          code: test.sample.code,
-          client: test.sample.client,
-          categoryName: test.sample.category.name,
-          categoryColor: test.sample.category.color,
-          tests: [],
-        })
-      }
-      map.get(key)!.tests.push(test)
-      return map
-    }, new Map<number, SampleGroup>())
-  ).values()
+  const sampleGroupsMap = allTests.reduce((map, test) => {
+    const key = test.sampleId
+    if (!map.has(key)) {
+      map.set(key, {
+        sampleId: test.sampleId,
+        code: test.sample.code,
+        client: test.sample.client,
+        categoryName: test.sample.category.name,
+        categoryColor: test.sample.category.color,
+        tests: [],
+      })
+    }
+    map.get(key)!.tests.push(test)
+    return map
+  }, new Map<number, SampleGroup>())
+
+  const sampleGroups = Array.from(sampleGroupsMap.values())
 
   const pendingTests = allTests.filter((t) => t.status !== 'done')
   const doneTests = allTests.filter((t) => t.status === 'done')
@@ -170,7 +170,7 @@ export default function AnalystQueuePage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {Array.from(sampleGroups).map((group) => {
+          {sampleGroups.map((group) => {
             const samplePendingTests = group.tests.filter((t) => t.status !== 'done')
             const sampleDoneTests = group.tests.filter((t) => t.status === 'done')
             const sampleCompleted = sampleDoneTests.length
