@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-git --src-dir=false --import-alias --skip-install)",
+      "Read(//private/tmp/**)",
+      "Bash(npx create-next-app@latest kds-app --typescript --tailwind --eslint --app --no-git --src-dir=false --import-alias --skip-install)",
+      "Bash(mv kds-app/* /Users/shubham/coding/KDS-SG/)",
+      "Bash(rmdir kds-app *)",
+      "Bash(cp -r /tmp/kds-app/* /Users/shubham/coding/KDS-SG/)",
+      "Bash(cp -r /tmp/kds-app/.[^.]* /Users/shubham/coding/KDS-SG/)",
+      "Bash(rm -rf /tmp/kds-app)",
+      "Bash(ls -la /tmp/kds-app 2>/dev/null | head -20)",
+      "Read(//tmp/**)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-git --src-dir=false --import-alias --skip-install --project-name=kds-sg)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(rm -rf .git && npx create-next-app@latest . --typescript --tailwind --eslint --app --no-git --src-dir=false --import-alias --skip-install)",
+      "Bash(cat > *)",
+      "Bash(npm install *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
+    "additionalDirectories": [
+      "/Users/shubham/coding/KDS-SG/.git",
+      "/Users/shubham/coding/KDS-SG/app/api/auth/[...nextauth]"
+    ]
+  }
+}
