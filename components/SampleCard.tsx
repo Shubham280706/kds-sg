@@ -65,19 +65,16 @@ export function SampleCard(props: SampleCardProps) {
       >
         {/* Header */}
         <div className="mb-4">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-gray-900">Sample</h3>
-              <p className="font-mono text-sm font-semibold text-gray-800 mt-1">{props.code}</p>
-              <p className="text-xs text-gray-600 mt-1">{props.client}</p>
-            </div>
+          <h2 className="font-bold text-lg text-gray-900 font-mono break-words mb-2">{props.code}</h2>
+          <div className="flex items-center gap-2 mb-2">
             <div
-              className="w-4 h-4 rounded-full flex-shrink-0"
+              className="w-3 h-3 rounded-full flex-shrink-0"
               style={{ backgroundColor: props.categoryColor }}
               title={props.categoryName}
             />
+            <p className="text-sm text-gray-700 font-medium">{props.categoryName}</p>
           </div>
-          <p className="text-xs text-gray-600 mt-2">{props.categoryName}</p>
+          <p className="text-xs text-gray-600">Client: {props.client}</p>
         </div>
 
         {/* Tests List */}
