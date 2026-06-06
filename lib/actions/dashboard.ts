@@ -1,0 +1,71 @@
+'use server'
+
+import { getDb } from '@/db'
+import { samples } from '@/db/schema'
+import { eq, and, lt, notInArray } from 'drizzle-orm'
+import { auth } from '@/auth/authOptions'
+
+async function checkAuth() {
+  const session = await auth()
+  if (!session?.user) {
+    throw new Error('Unauthorized: Not authenticated')
+  }
+  return session
+}
+
+export async function getKPIMetrics() {
+  try {
+    await checkAuth()
+    const db = await getDb()
+
+    // Get today's date at midnight
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Registered today
+    const registeredTodayResult = await db.query.samples.findMany({
+      where: (samples, { gte, eq: dbEq }) =>
+        and(
+          dbEq(samples.status, 'registered' as any),
+          gte(samples.createdAt, today)
+        ),
+    })
+
+    // Ready for review (under_review status)
+    const readyForReviewResult = await db.query.samples.findMany({
+      where: eq(samples.status, 'under_review' as any),
+    })
+
+    // In analysis
+    const inAnalysisResult = await db.query.samples.findMany({
+      where: eq(samples.status, 'in_analysis' as any),
+    })
+
+    // Overdue (dueAt < now AND status not reported/closed)
+    const now = new Date()
+    const overdueResult = await db.query.samples.findMany({
+      where: (samples, { lt, notInArray: notIn }) =>
+        and(
+          lt(samples.dueAt, now),
+          notIn(samples.status, ['reported' as any, 'closed' as any])
+        ),
+    })
+
+    return {
+      success: true,
+      registeredToday: registeredTodayResult.length,
+      readyForReview: readyForReviewResult.length,
+      inAnalysis: inAnalysisResult.length,
+      overdue: overdueResult.length,
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || 'Failed to fetch KPI metrics',
+      registeredToday: 0,
+      readyForReview: 0,
+      inAnalysis: 0,
+      overdue: 0,
+    }
+  }
+}

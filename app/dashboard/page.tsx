@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { SampleCard } from '@/components/SampleCard'
+import { KPICard } from '@/components/KPICard'
 import { Badge } from '@/components/ui/badge'
+import { getKPIMetrics } from '@/lib/actions/dashboard'
 
 interface Sample {
   id: number
@@ -21,6 +23,13 @@ interface Sample {
   createdAt: Date
 }
 
+interface KPIMetrics {
+  registeredToday: number
+  readyForReview: number
+  inAnalysis: number
+  overdue: number
+}
+
 const STATUS_LABELS: Record<string, string> = {
   registered: 'Registered',
   assigned: 'Assigned',
@@ -32,54 +41,51 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function DashboardPage() {
   const [samples, setSamples] = useState<Sample[]>([])
+  const [kpis, setKpis] = useState<KPIMetrics | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  // Polling for board updates
+  // Polling for board updates and KPI metrics
   useEffect(() => {
-    const fetchBoard = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/samples/board')
-        if (response.ok) {
-          const data = await response.json()
-          setSamples(data.samples || [])
-          setLastUpdated(new Date(data.timestamp))
+        // Fetch board data
+        const boardResponse = await fetch('/api/samples/board')
+        if (boardResponse.ok) {
+          const boardData = await boardResponse.json()
+          setSamples(boardData.samples || [])
+          setLastUpdated(new Date(boardData.timestamp))
+        }
+
+        // Fetch KPI metrics
+        const kpiResult = await getKPIMetrics()
+        if (kpiResult.success) {
+          setKpis({
+            registeredToday: kpiResult.registeredToday,
+            readyForReview: kpiResult.readyForReview,
+            inAnalysis: kpiResult.inAnalysis,
+            overdue: kpiResult.overdue,
+          })
         }
       } catch (error) {
-        console.error('Failed to fetch board:', error)
+        console.error('Failed to fetch data:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchBoard()
-    const interval = setInterval(fetchBoard, 3000) // Poll every 3 seconds
+    fetchData()
+    const interval = setInterval(fetchData, 3000) // Poll every 3 seconds
 
     return () => clearInterval(interval)
   }, [])
 
-  // Sort samples by due date (urgent first)
+  // Sort samples by priority and due date
   const sortedSamples = [...samples].sort((a, b) => {
     const dateA = new Date(a.dueAt).getTime()
     const dateB = new Date(b.dueAt).getTime()
     return dateA - dateB
   })
-
-  // Count by status
-  const statusCounts = Object.keys(STATUS_LABELS).reduce(
-    (acc, status) => {
-      acc[status] = samples.filter((s) => s.status === status).length
-      return acc
-    },
-    {} as Record<string, number>
-  )
-
-  const readyForReview = samples.filter((s) => s.status === 'approved').length
-  const overdue = samples.filter((s) => {
-    const now = new Date().getTime()
-    const dueTime = new Date(s.dueAt).getTime()
-    return dueTime < now && s.status !== 'reported' && s.status !== 'closed'
-  }).length
 
   if (isLoading) {
     return <div className="text-center py-12">Loading board...</div>
@@ -101,26 +107,14 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Strip */}
-      <div className="grid grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-semibold uppercase">Registered Today</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.registered}</p>
+      {kpis && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KPICard label="Registered Today" value={kpis.registeredToday} />
+          <KPICard label="Ready for Review" value={kpis.readyForReview} color="green" />
+          <KPICard label="In Analysis" value={kpis.inAnalysis} color="blue" />
+          <KPICard label="Overdue" value={kpis.overdue} color={kpis.overdue > 0 ? 'red' : 'default'} />
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-semibold uppercase">Ready for Review</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{readyForReview}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-semibold uppercase">In Analysis</p>
-          <p className="text-2xl font-bold text-blue-600 mt-1">{statusCounts.in_analysis}</p>
-        </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <p className="text-xs text-gray-600 font-semibold uppercase">Overdue</p>
-          <p className={`text-2xl font-bold mt-1 ${overdue > 0 ? 'text-red-600' : 'text-gray-600'}`}>
-            {overdue}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Sample Grid */}
       <div>
