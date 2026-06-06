@@ -376,3 +376,37 @@ export async function getSampleDetail(sampleId: number) {
     return { success: false, error: error.message || 'Failed to fetch sample' }
   }
 }
+
+export async function deleteSample(sampleId: number) {
+  try {
+    const { userId } = await checkAuth(['admin', 'analyst'])
+    const db = await getDb()
+
+    // Verify sample exists
+    const sample = await db.query.samples.findFirst({
+      where: eq(samples.id, sampleId),
+    })
+    if (!sample) {
+      return { success: false, error: 'Sample not found' }
+    }
+
+    // Only allow deletion if sample is in registered status (not yet assigned/started)
+    if (sample.status !== 'registered') {
+      return {
+        success: false,
+        error: `Cannot delete sample in ${sample.status} status. Only registered samples can be deleted.`,
+      }
+    }
+
+    // Delete related records
+    await db.delete(sampleTests).where(eq(sampleTests.sampleId, sampleId))
+    await db.delete(statusEvents).where(eq(statusEvents.sampleId, sampleId))
+
+    // Delete sample
+    await db.delete(samples).where(eq(samples.id, sampleId))
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Failed to delete sample' }
+  }
+}
