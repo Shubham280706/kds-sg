@@ -1,7 +1,7 @@
 'use client'
 
 import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -27,95 +28,105 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isAdmin = session.user?.role === 'admin'
 
+  const isActive = (href: string) => pathname.startsWith(href)
+
+  const NavLink = ({ href, icon, label }: { href: string; icon: string; label: string }) => {
+    const active = isActive(href)
+    return (
+      <Link href={href}>
+        <div
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 cursor-pointer group ${
+            active
+              ? 'bg-blue-600 text-white border-l-4 border-blue-400'
+              : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+          }`}
+        >
+          <span className="text-lg w-5">{icon}</span>
+          <span className="text-sm font-medium">{label}</span>
+        </div>
+      </Link>
+    )
+  }
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return '?'
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="hidden md:flex md:flex-col md:w-64 bg-gray-900 text-white">
-        <div className="p-6 border-b border-gray-800">
-          <h1 className="text-2xl font-bold">KDS Lab</h1>
-          <p className="text-xs text-gray-400 mt-1">Sample Tracking</p>
+      <div className="hidden md:flex md:flex-col md:w-60 bg-gradient-to-b from-gray-900 to-gray-950 text-white border-r border-gray-800">
+        {/* Header */}
+        <div className="px-6 py-5 border-b border-gray-800">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-2xl">🧪</div>
+            <h1 className="text-xl font-bold tracking-tight">KDS Lab</h1>
+          </div>
+          <p className="text-xs text-gray-500">Sample Tracking System</p>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <Link
-            href="/dashboard"
-            className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-          >
-            📊 KDS Board
-          </Link>
+        {/* Main Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <div className="text-xs font-semibold text-gray-600 uppercase tracking-widest mb-4 px-3">
+            Workspace
+          </div>
 
-          <Link
-            href="/samples"
-            className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-          >
-            📋 Samples
-          </Link>
+          <NavLink href="/dashboard" icon="📊" label="KDS Board" />
+          <NavLink href="/samples" icon="📋" label="Samples" />
+          <NavLink href="/samples/inward" icon="➕" label="Register Sample" />
+          <NavLink href="/analyst/queue" icon="🧬" label="My Queue" />
 
-          <Link
-            href="/samples/inward"
-            className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-          >
-            + Register Sample
-          </Link>
-
-          <Link
-            href="/analyst/queue"
-            className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-          >
-            🧪 My Queue
-          </Link>
-
+          {/* Admin Section */}
           {isAdmin && (
             <>
-              <div className="text-xs font-semibold text-gray-400 uppercase mt-4 mb-2 px-4">
+              <div className="text-xs font-semibold text-gray-600 uppercase tracking-widest my-4 px-3 pt-2 border-t border-gray-800">
                 Admin
               </div>
-              <Link
-                href="/admin/users"
-                className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-              >
-                Users
-              </Link>
-              <Link
-                href="/admin/categories"
-                className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-              >
-                Categories
-              </Link>
-              <Link
-                href="/admin/tests"
-                className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
-              >
-                Tests
-              </Link>
+              <NavLink href="/admin/users" icon="👥" label="Users" />
+              <NavLink href="/admin/categories" icon="🏷️" label="Categories" />
+              <NavLink href="/admin/tests" icon="🧪" label="Tests" />
             </>
           )}
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
-          <div className="text-xs text-gray-400 mb-3">
-            <p className="font-semibold text-gray-200">{session.user?.name}</p>
-            <p className="text-gray-500">{session.user?.email}</p>
+        {/* User Profile Section */}
+        <div className="px-4 py-4 border-t border-gray-800 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-sm font-bold text-white">
+              {getInitials(session.user?.name)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-100 truncate">{session.user?.name}</p>
+              <p className="text-xs text-gray-500 truncate">{session.user?.email}</p>
+            </div>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
+
+          <button
             onClick={() => signOut({ redirect: true, callbackUrl: '/auth/signin' })}
-            className="w-full"
+            className="w-full px-3 py-2 text-sm font-medium text-red-400 border border-red-900/50 rounded-lg hover:bg-red-950/20 transition-all duration-150"
           >
             Sign Out
-          </Button>
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
-        <div className="md:hidden bg-gray-900 text-white p-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold">KDS Lab</h1>
+        <div className="md:hidden bg-gradient-to-r from-gray-900 to-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🧪</span>
+            <h1 className="text-lg font-bold">KDS Lab</h1>
+          </div>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="text-white"
+            className="text-white hover:text-gray-300"
           >
             ☰
           </button>
@@ -123,29 +134,50 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-gray-800 text-white p-4 space-y-2">
-            <Link href="/dashboard" className="block px-4 py-2 rounded hover:bg-gray-700">
+          <div className="md:hidden bg-gray-900 text-white p-4 space-y-1 border-b border-gray-800">
+            <Link
+              href="/dashboard"
+              className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+            >
               📊 KDS Board
             </Link>
-            <Link href="/samples" className="block px-4 py-2 rounded hover:bg-gray-700">
+            <Link href="/samples" className="block px-3 py-2 rounded hover:bg-gray-800 transition-all">
               📋 Samples
             </Link>
-            <Link href="/samples/inward" className="block px-4 py-2 rounded hover:bg-gray-700">
-              + Register
+            <Link
+              href="/samples/inward"
+              className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+            >
+              ➕ Register
             </Link>
-            <Link href="/analyst/queue" className="block px-4 py-2 rounded hover:bg-gray-700">
-              🧪 My Queue
+            <Link
+              href="/analyst/queue"
+              className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+            >
+              🧬 My Queue
             </Link>
             {isAdmin && (
               <>
-                <Link href="/admin/users" className="block px-4 py-2 rounded hover:bg-gray-700">
-                  Users
+                <div className="text-xs font-semibold text-gray-500 uppercase mt-3 mb-2 px-3">
+                  Admin
+                </div>
+                <Link
+                  href="/admin/users"
+                  className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+                >
+                  👥 Users
                 </Link>
-                <Link href="/admin/categories" className="block px-4 py-2 rounded hover:bg-gray-700">
-                  Categories
+                <Link
+                  href="/admin/categories"
+                  className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+                >
+                  🏷️ Categories
                 </Link>
-                <Link href="/admin/tests" className="block px-4 py-2 rounded hover:bg-gray-700">
-                  Tests
+                <Link
+                  href="/admin/tests"
+                  className="block px-3 py-2 rounded hover:bg-gray-800 transition-all"
+                >
+                  🧪 Tests
                 </Link>
               </>
             )}
@@ -153,11 +185,9 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         )}
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto">
-          <div className="p-6">
-            {children}
-          </div>
-        </main>
+        <div className="flex-1 overflow-y-auto">
+          <main className="p-8">{children}</main>
+        </div>
       </div>
     </div>
   )
