@@ -41,8 +41,51 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             href="/dashboard"
             className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
           >
-            Dashboard
+            📊 KDS Board
           </Link>
+
+          <Link
+            href="/samples"
+            className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+          >
+            📋 Samples
+          </Link>
+
+          {['admin', 'front_desk'].includes(session.user?.role as string) && (
+            <Link
+              href="/samples/inward"
+              className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+            >
+              + Register Sample
+            </Link>
+          )}
+
+          {['admin', 'analyst'].includes(session.user?.role as string) && (
+            <Link
+              href="/analyst/queue"
+              className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+            >
+              🧪 My Queue
+            </Link>
+          )}
+
+          {['admin', 'reviewer'].includes(session.user?.role as string) && (
+            <Link
+              href="/reviewer/queue"
+              className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+            >
+              ✓ Review Queue
+            </Link>
+          )}
+
+          {['admin', 'signatory'].includes(session.user?.role as string) && (
+            <Link
+              href="/signatory/queue"
+              className="block px-4 py-2 rounded-lg hover:bg-gray-800 text-gray-100"
+            >
+              ✍️ Sign-off
+            </Link>
+          )}
 
           {isAdmin && (
             <>
@@ -98,8 +141,31 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-gray-800 text-white p-4 space-y-2">
             <Link href="/dashboard" className="block px-4 py-2 rounded hover:bg-gray-700">
-              Dashboard
+              📊 KDS Board
             </Link>
+            <Link href="/samples" className="block px-4 py-2 rounded hover:bg-gray-700">
+              📋 Samples
+            </Link>
+            {['admin', 'front_desk'].includes(session.user?.role as string) && (
+              <Link href="/samples/inward" className="block px-4 py-2 rounded hover:bg-gray-700">
+                + Register
+              </Link>
+            )}
+            {['admin', 'analyst'].includes(session.user?.role as string) && (
+              <Link href="/analyst/queue" className="block px-4 py-2 rounded hover:bg-gray-700">
+                🧪 My Queue
+              </Link>
+            )}
+            {['admin', 'reviewer'].includes(session.user?.role as string) && (
+              <Link href="/reviewer/queue" className="block px-4 py-2 rounded hover:bg-gray-700">
+                ✓ Review
+              </Link>
+            )}
+            {['admin', 'signatory'].includes(session.user?.role as string) && (
+              <Link href="/signatory/queue" className="block px-4 py-2 rounded hover:bg-gray-700">
+                ✍️ Sign-off
+              </Link>
+            )}
             {isAdmin && (
               <>
                 <Link href="/admin/categories" className="block px-4 py-2 rounded hover:bg-gray-700">

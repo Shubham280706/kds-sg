@@ -19,11 +19,15 @@
       "Bash(npm install *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(sed -i '193s/\"/{event.note}\"/&quot;{event.note}&quot;/g' 'app/samples/[id]/page.tsx')",
+      "Bash(sed -n '193p' 'app/samples/[id]/page.tsx')",
+      "Bash(sed -i '57s/as Sample/as any/' 'app/samples/[id]/page.tsx')"
     ],
     "additionalDirectories": [
       "/Users/shubham/coding/KDS-SG/.git",
-      "/Users/shubham/coding/KDS-SG/app/api/auth/[...nextauth]"
+      "/Users/shubham/coding/KDS-SG/app/api/auth/[...nextauth]",
+      "/Users/shubham/coding/KDS-SG/app/samples/[id]"
     ]
   }
 }
