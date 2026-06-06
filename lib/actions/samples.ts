@@ -353,13 +353,39 @@ export async function getSampleBoard() {
         sampleTests: {
           with: {
             test: true,
+            assignedToUser: true,
           },
         },
       },
-      orderBy: (samples, { asc }) => [asc(samples.createdAt)],
     })
 
-    return { success: true, samples: allSamples, timestamp: new Date() }
+    // Sort by priority
+    const statusPriority: Record<string, number> = {
+      assigned: 1,
+      in_analysis: 2,
+      under_review: 3,
+      approved: 4,
+      registered: 5,
+      reported: 6,
+      closed: 7,
+    }
+
+    const sortedSamples = allSamples.sort((a, b) => {
+      const priorityA = statusPriority[a.status] || 999
+      const priorityB = statusPriority[b.status] || 999
+
+      // First sort by priority
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB
+      }
+
+      // Within same priority, sort by most recently updated
+      const timeA = new Date(a.updatedAt).getTime()
+      const timeB = new Date(b.updatedAt).getTime()
+      return timeB - timeA // Most recent first
+    })
+
+    return { success: true, samples: sortedSamples, timestamp: new Date() }
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to fetch board' }
   }
