@@ -28,7 +28,18 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
 
   const isAdmin = session.user?.role === 'admin'
 
-  const isActive = (href: string) => pathname.startsWith(href)
+  const isActive = (href: string) => {
+    // Exact match for /samples/inward
+    if (href === '/samples/inward') {
+      return pathname === href || pathname.startsWith(href + '/')
+    }
+    // Exact match for /samples (but not /samples/inward)
+    if (href === '/samples') {
+      return pathname === href
+    }
+    // Default: exact match or start with href/
+    return pathname === href || pathname.startsWith(href + '/')
+  }
 
   const NavLink = ({ href, label }: { href: string; label: string }) => {
     const active = isActive(href)
