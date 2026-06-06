@@ -216,7 +216,7 @@ export default function AnalystQueuePage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-bold text-lg text-gray-900 font-mono mb-3">
-                        {group.code}
+                        {group.code || group.sampleId}
                       </h3>
                       <span
                         className="font-medium inline-block px-2 py-1 rounded text-white text-xs"
@@ -418,7 +418,7 @@ export default function AnalystQueuePage() {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-bold text-base text-gray-900 font-mono mb-2">
-                            {group.code}
+                            {group.code || group.sampleId}
                           </h3>
                           <span
                             className="font-medium inline-block px-2 py-1 rounded text-white text-xs"
