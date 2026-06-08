@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db'
 import { samples, sampleTests, statusEvents, tests, categories } from '@/db/schema'
-import { eq, and, not } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 // ===== Helpers =====
@@ -242,9 +242,7 @@ export async function completeTest(
 
     // Check if all tests are done
     const pendingTests = await db.query.sampleTests.findMany({
-      where: and(eq(sampleTests.sampleId, sampleId), ({ not, eq: dbEq }) =>
-        dbEq(sampleTests.status, 'done')
-      ),
+      where: and(eq(sampleTests.sampleId, sampleId), ne(sampleTests.status, 'done')),
     })
 
     // If all done, auto-advance to under_review
@@ -429,7 +427,7 @@ export async function getSampleDetail(sampleId: number) {
 
 export async function deleteSample(sampleId: number) {
   try {
-    const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
+    await checkAuth(['admin', 'analyst', 'reviewer'])
     const db = await getDb()
 
     // Verify sample exists

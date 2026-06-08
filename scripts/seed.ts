@@ -41,6 +41,19 @@ async function seed() {
     console.log('✅ Database seed completed!')
   } catch (error: any) {
     console.error('❌ Seed failed:', error.message)
+    if (error.code) {
+      console.error('   MySQL Error Code:', error.code)
+    }
+    if (error.cause) {
+      console.error('   Error Cause:', error.cause)
+    }
+    if (error.sqlMessage) {
+      console.error('   SQL Error:', error.sqlMessage)
+    }
+    if (error.sql) {
+      console.error('   SQL Query:', error.sql)
+    }
+    console.error('   Full Error:', error)
     process.exit(1)
   }
 }

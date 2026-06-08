@@ -24,7 +24,22 @@
       "Bash(sed -n '193p' 'app/samples/[id]/page.tsx')",
       "Bash(sed -i '57s/as Sample/as any/' 'app/samples/[id]/page.tsx')",
       "Bash(git stash *)",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(mysql -u root -proot123 -h localhost -e \"SELECT 'MySQL is running locally' as status;\")",
+      "Bash(mysql -u root -proot123 -h localhost -e \"SHOW DATABASES LIKE 'kds_lab';\")",
+      "Bash(mysql -u root -proot123 -h localhost -e \"SELECT user, host FROM mysql.user WHERE user='kds_user';\")",
+      "Bash(mysql -u kds_user -proot123 -h localhost kds_lab -e \"SHOW TABLES;\")",
+      "Bash(mysql -u kds_user -proot123 -h localhost kds_lab -e \"SELECT id, email, role, active FROM users WHERE role='admin';\")",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(curl -s -I http://localhost:3000/api/auth/signin)",
+      "Bash(curl -s http://localhost:3000/auth/signin)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(tee /tmp/build.log)",
+      "Bash(DATABASE_URL=\"mysql://root:uWQrCWOhjzehJboxBSHCEQxtOYsXmqpA@acela.proxy.rlwy.net:41660/railway\" npx tsx scripts/seed.ts)",
+      "Bash(mysql -u root -puWQrCWOhjzehJboxBSHCEQxtOYsXmqpA -h acela.proxy.rlwy.net -P 41660 railway -e \"SHOW TABLES;\")",
+      "Bash(DATABASE_URL=\"mysql://root:uWQrCWOhjzehJboxBSHCEQxtOYsXmqpA@acela.proxy.rlwy.net:41660/railway\" npx drizzle-kit push)",
+      "Bash(DATABASE_URL=\"mysql://root:uWQrCWOhjzehJboxBSHCEQxtOYsXmqpA@acela.proxy.rlwy.net:41660/railway\" SEED_ADMIN_EMAIL=\"admin@lab.local\" SEED_ADMIN_PASSWORD=\"demo123\" npx tsx scripts/seed.ts)",
+      "Bash(mysql -u root -puWQrCWOhjzehJboxBSHCEQxtOYsXmqpA -h acela.proxy.rlwy.net -P 41660 railway -e \"SELECT id, email, role, active FROM users WHERE role='admin';\")"
     ],
     "additionalDirectories": [
       "/Users/shubham/coding/KDS-SG/.git",

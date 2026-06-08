@@ -83,7 +83,7 @@ export default function ReviewDashboard() {
             <p className="text-3xl font-bold text-indigo-600 mt-2">
               {metrics.approvalRate}%
             </p>
-            <p className="text-xs text-gray-500 mt-2">Today's decision rate</p>
+            <p className="text-xs text-gray-500 mt-2">Today&apos;s decision rate</p>
           </CardContent>
         </Card>
       </div>
