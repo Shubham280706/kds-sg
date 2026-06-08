@@ -5,7 +5,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { getReviewDashboardMetrics } from '@/lib/actions/reviewer'
 
 export default function ReviewDashboard() {
-  const [metrics, setMetrics] = useState({ readyForReview: 0, approvedToday: 0 })
+  const [metrics, setMetrics] = useState({
+    readyForReview: 0,
+    approvedToday: 0,
+    rejectedToday: 0,
+    pendingReview: 0,
+    approvalRate: 0,
+  })
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -18,6 +24,9 @@ export default function ReviewDashboard() {
       setMetrics({
         readyForReview: result.readyForReview || 0,
         approvedToday: result.approvedToday || 0,
+        rejectedToday: result.rejectedToday || 0,
+        pendingReview: result.pendingReview || 0,
+        approvalRate: result.approvalRate || 0,
       })
     }
     setIsLoading(false)
@@ -41,7 +50,8 @@ export default function ReviewDashboard() {
             <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">
               Ready for Review
             </p>
-            <p className="text-3xl font-bold text-gray-900 mt-2">{metrics.readyForReview}</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{metrics.readyForReview}</p>
+            <p className="text-xs text-gray-500 mt-2">Waiting to be reviewed</p>
           </CardContent>
         </Card>
 
@@ -51,17 +61,17 @@ export default function ReviewDashboard() {
               Approved Today
             </p>
             <p className="text-3xl font-bold text-green-600 mt-2">{metrics.approvedToday}</p>
+            <p className="text-xs text-gray-500 mt-2">Approved in last 24h</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardContent className="pt-6">
             <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">
-              Pending Review
+              Pending Revision
             </p>
-            <p className="text-3xl font-bold text-amber-600 mt-2">
-              {metrics.readyForReview - metrics.approvedToday}
-            </p>
+            <p className="text-3xl font-bold text-amber-600 mt-2">{metrics.pendingReview}</p>
+            <p className="text-xs text-gray-500 mt-2">Sent back to analyst</p>
           </CardContent>
         </Card>
 
@@ -70,12 +80,10 @@ export default function ReviewDashboard() {
             <p className="text-xs text-gray-600 font-semibold uppercase tracking-wide">
               Approval Rate
             </p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">
-              {metrics.readyForReview > 0
-                ? Math.round((metrics.approvedToday / metrics.readyForReview) * 100)
-                : 0}
-              %
+            <p className="text-3xl font-bold text-indigo-600 mt-2">
+              {metrics.approvalRate}%
             </p>
+            <p className="text-xs text-gray-500 mt-2">Today's decision rate</p>
           </CardContent>
         </Card>
       </div>

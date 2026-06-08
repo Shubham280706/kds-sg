@@ -43,7 +43,7 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h1 className="text-2xl font-bold text-gray-900">KDS Lab</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Siddhi Green Lab</h1>
           <p className="text-sm text-gray-600 mt-1">Sign in to your account</p>
         </CardHeader>
         <CardContent>

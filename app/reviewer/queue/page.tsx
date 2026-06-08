@@ -9,7 +9,7 @@ interface Sample {
   id: number
   sampleCode: string
   client: string
-  dueAt: Date
+  dueAt: Date | null
   category: { name: string; color: string }
   sampleTests: Array<{
     id: number
@@ -62,7 +62,7 @@ export default function ReviewQueuePage() {
             const completedTests = sample.sampleTests.filter(
               (t) => t.resultValue
             ).length
-            const isOverdue = new Date(sample.dueAt) < new Date()
+            const isOverdue = sample.dueAt ? new Date(sample.dueAt) < new Date() : false
 
             return (
               <div
@@ -109,7 +109,7 @@ export default function ReviewQueuePage() {
 
       {selectedSample && (
         <ReviewModal
-          sample={selectedSample}
+          sample={selectedSample as any}
           onClose={() => setSelectedSample(null)}
           onReload={fetchQueue}
         />

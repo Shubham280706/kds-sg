@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db'
 import { samples, sampleTests, statusEvents, tests, categories } from '@/db/schema'
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, not } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 // ===== Helpers =====

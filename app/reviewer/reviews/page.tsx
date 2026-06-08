@@ -8,9 +8,11 @@ import { getReviewHistory } from '@/lib/actions/reviewer'
 interface Review {
   id: number
   sampleId: number
+  fromStatus: string
   toStatus: string
-  note: string
+  note: string | null
   createdAt: Date
+  byUser: { id: number; name: string } | null
   sample: {
     sampleCode: string
     client: string

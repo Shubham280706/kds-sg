@@ -3,8 +3,8 @@ import { Providers } from '@/components/Providers'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'KDS Lab',
-  description: 'Lab sample tracking and KDS dashboard',
+  title: 'Siddhi Green Lab',
+  description: 'Sample display and tracking system',
 }
 
 export default function RootLayout({

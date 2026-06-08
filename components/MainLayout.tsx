@@ -73,8 +73,8 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <div className="hidden md:flex md:flex-col md:w-60 bg-gradient-to-b from-gray-900 to-gray-950 text-white border-r border-gray-800">
         {/* Header */}
         <div className="px-6 py-5 border-b border-gray-800">
-          <h1 className="text-xl font-bold tracking-tight mb-1">KDS Lab</h1>
-          <p className="text-xs text-gray-500">Sample Tracking System</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1">Siddhi Green Lab</h1>
+          <p className="text-xs text-gray-500">Sample Display System</p>
         </div>
 
         {/* Main Navigation */}
@@ -141,7 +141,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden bg-gradient-to-r from-gray-900 to-gray-950 text-white p-4 flex justify-between items-center border-b border-gray-800">
-          <h1 className="text-lg font-bold">KDS Lab</h1>
+          <h1 className="text-lg font-bold">Siddhi Green Lab</h1>
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="text-white hover:text-gray-300"
