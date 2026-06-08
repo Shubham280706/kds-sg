@@ -1,7 +1,7 @@
 import { auth } from '@/auth/authOptions'
 import { getDb } from '@/db'
-import { sampleTests } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { sampleTests, statusEvents } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -21,12 +21,26 @@ export async function GET() {
         sample: {
           with: {
             category: true,
+            statusEvents: {
+              where: and(
+                eq(statusEvents.fromStatus, 'under_review' as any),
+                eq(statusEvents.toStatus, 'in_analysis' as any)
+              ),
+              orderBy: (se, { desc }) => [desc(se.createdAt)],
+              limit: 1,
+            },
           },
         },
       },
     })
 
-    return NextResponse.json({ tests })
+    // Map tests to include revision reason
+    const testsWithRevisions = tests.map((test) => ({
+      ...test,
+      revisionReason: test.sample?.statusEvents?.[0]?.note || null,
+    }))
+
+    return NextResponse.json({ tests: testsWithRevisions })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }

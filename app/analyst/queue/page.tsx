@@ -16,6 +16,7 @@ interface Test {
   resultUnit: string | null
   method: string | null
   doneAt: Date | null
+  revisionReason: string | null
   test: {
     id: number
     name: string
@@ -37,6 +38,7 @@ interface SampleCardData {
   categoryName: string
   categoryColor: string
   dueAt: Date
+  revisionReason: string | null
   tests: Test[]
 }
 
@@ -81,6 +83,7 @@ export default function AnalystQueuePage() {
         categoryName: test.sample?.category?.name || 'Unknown',
         categoryColor: test.sample?.category?.color || '#3B82F6',
         dueAt: test.sample?.dueAt || new Date(),
+        revisionReason: test.revisionReason || null,
         tests: [],
       }
     }
@@ -158,7 +161,7 @@ export default function AnalystQueuePage() {
 
     return (
       <div
-        className="p-5 rounded-lg border-l-4 transition-all hover:shadow-md"
+        className="p-5 rounded-lg border-l-4 transition-all hover:shadow-md relative"
         style={{
           borderLeftColor: borderColor,
           backgroundColor: testsDone === totalTests ? '#F0FDF4' : '#F8FAFC',
@@ -167,6 +170,16 @@ export default function AnalystQueuePage() {
           borderBottom: '1px solid #E5E7EB',
         }}
       >
+        {/* Revision Badge */}
+        {sample.revisionReason && (
+          <div
+            className="absolute top-0 right-0 px-2 py-1 rounded-bl-lg text-white text-xs font-bold uppercase"
+            style={{ backgroundColor: '#e74c3c' }}
+          >
+            ↻ Revision
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-4 flex items-start justify-between">
           <div>
@@ -187,6 +200,14 @@ export default function AnalystQueuePage() {
             </p>
           </div>
         </div>
+
+        {/* Revision Feedback */}
+        {sample.revisionReason && (
+          <div className="mb-4 p-3 rounded border-l-4" style={{ backgroundColor: '#fadbd8', borderLeftColor: '#e74c3c' }}>
+            <p className="text-xs font-bold text-red-800 mb-1">Reviewer Feedback:</p>
+            <p className="text-xs text-red-700 leading-relaxed">{sample.revisionReason}</p>
+          </div>
+        )}
 
         {/* Tests List */}
         {totalTests > 0 && (

@@ -23,7 +23,8 @@
       "Bash(sed -i '193s/\"/{event.note}\"/&quot;{event.note}&quot;/g' 'app/samples/[id]/page.tsx')",
       "Bash(sed -n '193p' 'app/samples/[id]/page.tsx')",
       "Bash(sed -i '57s/as Sample/as any/' 'app/samples/[id]/page.tsx')",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ],
     "additionalDirectories": [
       "/Users/shubham/coding/KDS-SG/.git",
