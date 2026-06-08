@@ -69,7 +69,7 @@ export async function createSample(data: {
   testAssignments?: Array<{ testId: number; assignedTo: number | null }>
 }) {
   try {
-    const { userId } = await checkAuth(['admin', 'analyst'])
+    const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
     const db = await getDb()
 
     // Validate category exists
@@ -181,7 +181,7 @@ export async function assignTests(sampleId: number, assignments: Array<{ testId:
 
 export async function markTestInProgress(testId: number, sampleId: number) {
   try {
-    const { userId } = await checkAuth(['admin', 'analyst'])
+    const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
     const db = await getDb()
 
     // Update test status
@@ -210,7 +210,7 @@ export async function completeTest(
   method?: string
 ) {
   try {
-    const { userId } = await checkAuth(['admin', 'analyst'])
+    const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
     const db = await getDb()
 
     // Update test
@@ -429,7 +429,7 @@ export async function getSampleDetail(sampleId: number) {
 
 export async function deleteSample(sampleId: number) {
   try {
-    const { userId } = await checkAuth(['admin', 'analyst'])
+    const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
     const db = await getDb()
 
     // Verify sample exists
