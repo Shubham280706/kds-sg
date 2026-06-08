@@ -7,101 +7,94 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { completeTest } from '@/lib/actions/samples'
 
-interface SampleTest {
+interface Test {
   id: number
-  sampleId: number
   testId: number
+  sampleId: number
   status: string
   resultValue: string | null
   resultUnit: string | null
   method: string | null
   doneAt: Date | null
-  test: { id: number; name: string; unit: string }
-  sample: {
+  test: {
     id: number
-    sampleCode: string
-    client: string
-    dueAt: Date
-    category: { id: number; name: string; color: string }
+    name: string
+    unit: string
   }
 }
 
-interface SampleGroup {
+interface SampleCardData {
   sampleId: number
   sampleCode: string
   categoryName: string
   categoryColor: string
-  tests: SampleTest[]
   dueAt: Date
+  tests: Test[]
 }
 
 export default function AnalystQueuePage() {
-  const [allTests, setAllTests] = useState<SampleTest[]>([])
+  const [allTests, setAllTests] = useState<Test[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [expandedTest, setExpandedTest] = useState<number | null>(null)
   const [resultData, setResultData] = useState<Record<number, { value: string; unit: string; method: string }>>({})
-  const [isLoading, setIsLoading] = useState(true)
   const [completingTests, setCompletingTests] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
 
   useEffect(() => {
     const fetchTests = async () => {
-      const res = await fetch(`/api/analyst/queue`)
-      if (res.ok) {
-        const data = await res.json()
-        setAllTests(data.tests || [])
+      try {
+        const res = await fetch(`/api/analyst/queue`)
+        if (res.ok) {
+          const data = await res.json()
+          setAllTests(data.tests || [])
+        }
+        setIsLoading(false)
+      } catch (err) {
+        console.error('Failed to fetch tests:', err)
+        setIsLoading(false)
       }
-      setIsLoading(false)
     }
-    fetchTests()
 
-    // Poll for updates every 3 seconds
+    fetchTests()
     const interval = setInterval(fetchTests, 3000)
     return () => clearInterval(interval)
   }, [])
 
-  const pendingTests = allTests.filter((t) => t.status !== 'done')
-  const completedTests = allTests.filter((t) => t.status === 'done')
+  // Group tests by sample (simple forEach approach)
+  const groupedSamples: Record<number, SampleCardData> = {}
 
-  // Group pending tests by sample, sorted by due date
-  const pendingSampleGroups = Array.from(
-    pendingTests.reduce((map, test) => {
-      const key = test.sampleId
-      if (!map.has(key)) {
-        map.set(key, {
-          sampleId: test.sampleId,
-          sampleCode: test.sample.sampleCode,
-          categoryName: test.sample.category.name,
-          categoryColor: test.sample.category.color,
-          tests: [],
-          dueAt: test.sample.dueAt,
-        })
+  allTests.forEach((test) => {
+    const key = test.sampleId
+    if (!groupedSamples[key]) {
+      groupedSamples[key] = {
+        sampleId: test.sampleId,
+        sampleCode: test.sample?.sampleCode || `Sample ${key}`,
+        categoryName: test.sample?.category?.name || 'Unknown',
+        categoryColor: test.sample?.category?.color || '#3B82F6',
+        dueAt: test.sample?.dueAt || new Date(),
+        tests: [],
       }
-      map.get(key)!.tests.push(test)
-      return map
-    }, new Map<number, SampleGroup>())
+    }
+    groupedSamples[key].tests.push(test)
+  })
+
+  // Convert to array and sort by due date
+  const allSampleCards = Object.values(groupedSamples).sort(
+    (a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
   )
-    .values()
-    .sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime())
 
-  // Group completed tests by sample
-  const completedSampleGroups = Array.from(
-    completedTests.reduce((map, test) => {
-      const key = test.sampleId
-      if (!map.has(key)) {
-        map.set(key, {
-          sampleId: test.sampleId,
-          sampleCode: test.sample.sampleCode,
-          categoryName: test.sample.category.name,
-          categoryColor: test.sample.category.color,
-          tests: [],
-          dueAt: test.sample.dueAt,
-        })
-      }
-      map.get(key)!.tests.push(test)
-      return map
-    }, new Map<number, SampleGroup>())
-  ).values()
+  // Split into pending and completed
+  const pendingSamples = allSampleCards.filter((s) =>
+    s.tests.some((t) => t.status !== 'done')
+  )
+  const completedSamples = allSampleCards.filter((s) =>
+    s.tests.every((t) => t.status === 'done')
+  )
+
+  const totalTests = allTests.length
+  const completedTestsCount = allTests.filter((t) => t.status === 'done').length
+  const pendingTestsCount = totalTests - completedTestsCount
 
   const handleCompleteTest = async (testId: number, sampleId: number) => {
     const data = resultData[testId]
@@ -114,11 +107,12 @@ export default function AnalystQueuePage() {
     setError('')
 
     try {
+      const testObj = allTests.find((t) => t.id === testId)
       const result = await completeTest(
         testId,
         sampleId,
         data.value,
-        data.unit || allTests.find((t) => t.id === testId)?.test.unit || '',
+        data.unit || testObj?.test?.unit || '',
         data.method
       )
 
@@ -145,49 +139,55 @@ export default function AnalystQueuePage() {
     }
   }
 
-  const renderCard = (group: SampleGroup, isPending: boolean) => {
-    const completedCount = group.tests.filter((t) => t.status === 'done').length
-    const totalCount = group.tests.length
-    const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+  const SampleCard = ({ sample }: { sample: SampleCardData }) => {
+    const testsDone = sample.tests.filter((t) => t.status === 'done').length
+    const totalTests = sample.tests.length
+    const progressPercent = totalTests > 0 ? Math.round((testsDone / totalTests) * 100) : 0
+    const isOverdue = new Date(sample.dueAt) < new Date()
 
-    const statusBorderColor = isPending
-      ? 'border-l-blue-500'
-      : 'border-l-green-500'
-
-    const statusBgColor = isPending ? 'bg-blue-50' : 'bg-green-50'
-
-    const isOverdue = isPending && new Date(group.dueAt) < new Date()
+    const borderColor =
+      testsDone === totalTests ? '#10B981' : sample.categoryColor
 
     return (
       <div
-        key={group.sampleId}
-        className={`p-5 border-l-4 rounded-lg ${statusBorderColor} ${statusBgColor} h-full flex flex-col hover:shadow-md transition-all cursor-pointer`}
-        onClick={() => !isPending && setShowCompleted(true)}
+        className="p-5 rounded-lg border-l-4 transition-all hover:shadow-md"
+        style={{
+          borderLeftColor: borderColor,
+          backgroundColor: testsDone === totalTests ? '#F0FDF4' : '#F8FAFC',
+          borderRight: '1px solid #E5E7EB',
+          borderTop: '1px solid #E5E7EB',
+          borderBottom: '1px solid #E5E7EB',
+        }}
       >
         {/* Header */}
-        <div className="mb-4">
-          <div className="flex items-start justify-between mb-3">
-            <h3 className="font-bold text-lg text-gray-900 font-mono">{group.sampleCode}</h3>
-            <span className="text-sm font-semibold text-gray-600">
-              {completedCount}/{totalCount}
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h3 className="font-bold text-lg font-mono text-gray-900">
+              {sample.sampleCode}
+            </h3>
+            <span
+              className="inline-block px-2 py-1 mt-2 rounded text-white text-xs font-medium"
+              style={{ backgroundColor: sample.categoryColor }}
+            >
+              {sample.categoryName}
             </span>
           </div>
-          <span
-            className="font-medium inline-block px-2 py-1 rounded text-white text-xs"
-            style={{ backgroundColor: group.categoryColor }}
-          >
-            {group.categoryName}
-          </span>
+          <div className="text-right">
+            <p className="text-xs text-gray-600">Tests</p>
+            <p className="text-lg font-bold text-gray-900">
+              {testsDone}/{totalTests}
+            </p>
+          </div>
         </div>
 
         {/* Tests List */}
-        {totalCount > 0 && (
-          <div className="mb-4 p-3 bg-white bg-opacity-50 rounded border border-gray-200 flex-1">
+        {totalTests > 0 && (
+          <div className="mb-4 p-3 bg-white bg-opacity-50 rounded border border-gray-200">
             <p className="text-xs font-semibold text-gray-700 mb-3">
-              Tests ({completedCount}/{totalCount})
+              Tests ({testsDone}/{totalTests})
             </p>
             <div className="space-y-2">
-              {group.tests.map((test) => (
+              {sample.tests.map((test) => (
                 <div key={test.id}>
                   <div className="flex items-start gap-2 text-xs">
                     <input
@@ -198,7 +198,7 @@ export default function AnalystQueuePage() {
                           setExpandedTest(expandedTest === test.id ? null : test.id)
                         }
                       }}
-                      className="w-4 h-4 mt-0.5 flex-shrink-0 accent-blue-600"
+                      className="w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer accent-blue-600"
                     />
                     <div className="flex-1 min-w-0">
                       <p
@@ -215,15 +215,17 @@ export default function AnalystQueuePage() {
                       </p>
                       {test.status === 'done' && test.resultValue && (
                         <p className="text-gray-600 text-xs mt-1">
-                          Result: <span className="font-semibold">{test.resultValue} {test.resultUnit}</span>
+                          <span className="font-semibold">
+                            {test.resultValue} {test.resultUnit || test.test.unit}
+                          </span>
                         </p>
                       )}
                     </div>
                   </div>
 
-                  {/* Expanded Form */}
+                  {/* Inline Result Form */}
                   {expandedTest === test.id && test.status !== 'done' && (
-                    <div className="mt-3 p-3 bg-blue-100 border border-blue-200 rounded space-y-2 ml-6">
+                    <div className="mt-2 ml-6 p-3 bg-blue-100 border border-blue-200 rounded space-y-2">
                       <div>
                         <Label htmlFor={`value-${test.id}`} className="text-xs">
                           Result Value *
@@ -242,8 +244,8 @@ export default function AnalystQueuePage() {
                             })
                           }
                           placeholder="e.g., 7.5"
-                          autoFocus
                           className="text-xs"
+                          autoFocus
                         />
                       </div>
                       <div>
@@ -286,13 +288,8 @@ export default function AnalystQueuePage() {
                       </div>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() =>
-                            handleCompleteTest(test.id, test.sampleId)
-                          }
-                          disabled={
-                            !resultData[test.id]?.value ||
-                            completingTests.has(test.id)
-                          }
+                          onClick={() => handleCompleteTest(test.id, test.sampleId)}
+                          disabled={!resultData[test.id]?.value || completingTests.has(test.id)}
                           size="sm"
                           className="text-xs"
                         >
@@ -302,7 +299,6 @@ export default function AnalystQueuePage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setExpandedTest(null)}
-                          disabled={completingTests.has(test.id)}
                           className="text-xs"
                         >
                           Cancel
@@ -317,33 +313,31 @@ export default function AnalystQueuePage() {
         )}
 
         {/* Progress Bar */}
-        {totalCount > 0 && (
+        {totalTests > 0 && (
           <div className="mb-3">
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div className="w-full bg-gray-200 rounded-full h-2">
               <div
-                className={`h-1.5 rounded-full transition-all ${
-                  completionPercent === 100
+                className={`h-2 rounded-full transition-all ${
+                  progressPercent === 100
                     ? 'bg-green-500'
-                    : completionPercent >= 50
+                    : progressPercent >= 50
                       ? 'bg-blue-500'
                       : 'bg-amber-500'
                 }`}
-                style={{ width: `${completionPercent}%` }}
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <p className="text-xs text-gray-600 mt-1">
-              {completionPercent}% complete
-            </p>
+            <p className="text-xs text-gray-600 mt-1">{progressPercent}% complete</p>
           </div>
         )}
 
         {/* Footer */}
         <div className="border-t border-gray-200 pt-3 flex items-center justify-between text-xs">
           <Badge variant="default" className="text-xs">
-            {isPending ? 'Pending' : 'Done'}
+            {testsDone === totalTests ? 'Done' : 'Pending'}
           </Badge>
-          <span className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-600'}>
-            {isOverdue ? 'Overdue' : 'On time'}
+          <span className={isOverdue && testsDone < totalTests ? 'text-red-600 font-semibold' : 'text-gray-600'}>
+            {isOverdue && testsDone < totalTests ? 'Overdue' : 'On time'}
           </span>
         </div>
       </div>
@@ -370,31 +364,43 @@ export default function AnalystQueuePage() {
         <div className="mb-4">
           <h2 className="text-xl font-bold text-gray-900">
             Pending & In Progress{' '}
-            <Badge variant={pendingTests.length > 0 ? 'warning' : 'success'}>
-              {pendingTests.length}
+            <Badge variant={pendingTestsCount > 0 ? 'warning' : 'success'}>
+              {pendingTestsCount}
             </Badge>
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            {pendingTests.length} / {allTests.length} tests remaining
+            {pendingTestsCount} / {totalTests} tests remaining
           </p>
         </div>
 
-        {pendingTests.length === 0 ? (
+        {/* Progress Bar */}
+        {totalTests > 0 && (
+          <div className="mb-4 p-4 bg-white border border-gray-200 rounded-lg">
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-green-600 h-3 rounded-full transition-all"
+                style={{ width: `${((totalTests - pendingTestsCount) / totalTests) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {pendingTestsCount === 0 ? (
           <div className="bg-green-50 border border-green-200 rounded-lg p-12 text-center">
-            <p className="text-lg font-semibold text-green-700">
-              ✅ All tests completed!
-            </p>
+            <p className="text-lg font-semibold text-green-700">✅ All tests completed!</p>
             <p className="text-green-600 mt-2">Your samples are ready for review.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 auto-rows-max">
-            {pendingSampleGroups.map((group) => renderCard(group, true))}
+            {pendingSamples.map((sample) => (
+              <SampleCard key={sample.sampleId} sample={sample} />
+            ))}
           </div>
         )}
       </div>
 
       {/* COMPLETED SECTION */}
-      {completedTests.length > 0 && (
+      {completedSamples.length > 0 && (
         <div>
           <button
             onClick={() => setShowCompleted(!showCompleted)}
@@ -403,17 +409,17 @@ export default function AnalystQueuePage() {
             <h2 className="text-xl font-bold text-gray-900">
               ✓ Completed{' '}
               <Badge variant="success" className="ml-2">
-                {completedTests.length}
+                {completedSamples.length}
               </Badge>
             </h2>
-            <span className="text-gray-400 text-xl">
-              {showCompleted ? '▼' : '▶'}
-            </span>
+            <span className="text-gray-400 text-xl">{showCompleted ? '▼' : '▶'}</span>
           </button>
 
           {showCompleted && (
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 auto-rows-max">
-              {completedSampleGroups.map((group) => renderCard(group, false))}
+              {completedSamples.map((sample) => (
+                <SampleCard key={sample.sampleId} sample={sample} />
+              ))}
             </div>
           )}
         </div>
