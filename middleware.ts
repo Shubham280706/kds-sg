@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-type UserRole = 'admin' | 'analyst'
+type UserRole = 'admin' | 'analyst' | 'reviewer'
 
 interface RouteConfig {
   path: string
@@ -13,13 +13,16 @@ const PROTECTED_ROUTES: RouteConfig[] = [
   // Admin only - master data
   { path: '/admin', requiredRoles: ['admin'] },
 
-  // Sample intake, assignment, queue - both roles
+  // Sample intake, assignment, queue - admin and analyst
   { path: '/samples/inward', requiredRoles: ['admin', 'analyst'] },
   { path: '/samples', requiredRoles: ['admin', 'analyst'] },
   { path: '/analyst/queue', requiredRoles: ['admin', 'analyst'] },
 
-  // Dashboard - both roles
-  { path: '/dashboard', requiredRoles: ['admin', 'analyst'] },
+  // Reviewer - admin and reviewer
+  { path: '/reviewer', requiredRoles: ['admin', 'reviewer'] },
+
+  // Dashboard - all roles
+  { path: '/dashboard', requiredRoles: ['admin', 'analyst', 'reviewer'] },
 ]
 
 export async function middleware(request: NextRequest) {
@@ -49,5 +52,6 @@ export const config = {
     '/dashboard/:path*',
     '/samples/:path*',
     '/analyst/:path*',
+    '/reviewer/:path*',
   ],
 }

@@ -21,6 +21,14 @@ interface Test {
     name: string
     unit: string
   }
+  sample: {
+    sampleCode: string
+    dueAt: Date
+    category: {
+      name: string
+      color: string
+    }
+  }
 }
 
 interface SampleCardData {
