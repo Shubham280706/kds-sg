@@ -30,14 +30,6 @@ interface KPIMetrics {
   overdue: number
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  registered: 'Registered',
-  assigned: 'Assigned',
-  in_analysis: 'In Analysis',
-  under_review: 'Under Review',
-  approved: 'Approved',
-  reported: 'Reported',
-}
 
 export default function DashboardPage() {
   const [samples, setSamples] = useState<Sample[]>([])
@@ -193,20 +185,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Status Summary Footer */}
-      <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Summary</h3>
-        <div className="grid grid-cols-3 gap-4 sm:grid-cols-6 text-sm">
-          {Object.entries(STATUS_LABELS).map(([status, label]) => {
-            const count = samples.filter((s) => s.status === status).length
-            return (
-              <div key={status} className="text-center">
-                <p className="text-gray-600 text-xs font-medium">{label}</p>
-                <p className="text-xl font-bold text-gray-900 mt-1">{count}</p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+     
     </div>
   )
 }
