@@ -96,23 +96,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Highlights & Notes</h1>
-          <p className="text-gray-600 mt-2">Real-time sample tracking</p>
+    <div className="space-y-3">
+      {/* Last Updated */}
+      {lastUpdated && (
+        <div className="text-xs text-gray-500">
+          Last updated: {lastUpdated.toLocaleTimeString()}
         </div>
-        {lastUpdated && (
-          <div className="text-xs text-gray-500">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* KPI Strip */}
       {kpis && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <KPICard label="Registered Today" value={kpis.registeredToday} />
           <KPICard label="Ready for Review" value={kpis.readyForReview} color="green" />
           <KPICard label="In Analysis" value={kpis.inAnalysis} color="blue" />
@@ -149,7 +143,7 @@ export default function DashboardPage() {
 
       {/* Sample Grid */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">
           {selectedCategory ? selectedCategory : 'All Samples'}
           <Badge variant="default" className="ml-2">
             {sortedSamples.length}
@@ -161,7 +155,7 @@ export default function DashboardPage() {
             <p className="text-gray-500">No samples yet. Register one to get started.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-max">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 auto-rows-max">
             {sortedSamples.map((sample) => (
               <SampleCard
                 key={sample.id}
