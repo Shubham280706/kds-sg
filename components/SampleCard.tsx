@@ -1,7 +1,6 @@
 'use client'
 
 import { TATIndicator } from '@/components/TATIndicator'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 
 interface Test {
@@ -43,6 +42,26 @@ const statusBgColors: Record<string, string> = {
   closed: 'bg-gray-50',
 }
 
+const statusLabels: Record<string, string> = {
+  registered: 'Registered',
+  assigned: 'Assigned',
+  in_analysis: 'In Analysis',
+  under_review: '⏳ Awaiting Approval',
+  approved: '✅ Approved',
+  reported: 'Reported',
+  closed: 'Closed',
+}
+
+const statusBadgeStyles: Record<string, { bg: string; text: string }> = {
+  registered: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  assigned: { bg: 'bg-blue-100', text: 'text-blue-800' },
+  in_analysis: { bg: 'bg-amber-100', text: 'text-amber-800' },
+  under_review: { bg: 'bg-purple-100', text: 'text-purple-800' },
+  approved: { bg: 'bg-green-100', text: 'text-green-800' },
+  reported: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
+  closed: { bg: 'bg-gray-100', text: 'text-gray-800' },
+}
+
 export function SampleCard(props: SampleCardProps) {
   const completedTests = props.tests.filter((t) => t.status === 'done').length
   const totalTests = props.tests.length
@@ -57,6 +76,9 @@ export function SampleCard(props: SampleCardProps) {
     accentColor = 'border-l-green-500'
     bgColor = 'bg-green-50'
   }
+
+  const statusLabel = statusLabels[props.status] || props.status.replace(/_/g, ' ')
+  const statusStyle = statusBadgeStyles[props.status] || { bg: 'bg-gray-100', text: 'text-gray-800' }
 
   return (
     <Link href={`/samples/${props.id}`}>
@@ -133,9 +155,9 @@ export function SampleCard(props: SampleCardProps) {
 
         {/* Footer */}
         <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
-          <Badge variant="default" className="text-xs">
-            {props.status.replace(/_/g, ' ')}
-          </Badge>
+          <div className={`text-xs font-medium px-2 py-1 rounded ${statusStyle.bg} ${statusStyle.text}`}>
+            {statusLabel}
+          </div>
           <TATIndicator dueAt={props.dueAt} createdAt={props.createdAt} />
         </div>
       </div>

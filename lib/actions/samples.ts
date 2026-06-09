@@ -62,6 +62,7 @@ export async function createSample(data: {
   source?: string
   samplingAt: string
   receivedAt: string
+  dueAt?: string
   categoryId: number
   quantity?: string
   condition?: string
@@ -83,9 +84,14 @@ export async function createSample(data: {
     // Generate sample ID
     const sampleCode = await generateSampleId()
 
-    // Calculate due date
-    const dueDate = new Date(data.receivedAt)
-    dueDate.setHours(dueDate.getHours() + category.defaultTatHours)
+    // Calculate due date - use provided dueAt or calculate from receivedAt + category default TAT
+    let dueDate: Date
+    if (data.dueAt) {
+      dueDate = new Date(data.dueAt)
+    } else {
+      dueDate = new Date(data.receivedAt)
+      dueDate.setHours(dueDate.getHours() + category.defaultTatHours)
+    }
 
     // Create sample
     const result = await db.insert(samples).values({

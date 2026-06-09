@@ -50,6 +50,11 @@ export default function SampleInwardPage() {
     source: '',
     samplingAt: new Date().toISOString().split('T')[0],
     receivedAt: new Date().toISOString().split('T')[0],
+    dueAt: (() => {
+      const date = new Date()
+      date.setDate(date.getDate() + 3)
+      return date.toISOString().split('T')[0]
+    })(),
     categoryId: '',
     quantity: '',
     condition: '',
@@ -143,6 +148,7 @@ export default function SampleInwardPage() {
         source: formData.source || undefined,
         samplingAt: formData.samplingAt,
         receivedAt: formData.receivedAt,
+        dueAt: formData.dueAt,
         categoryId: parseInt(formData.categoryId, 10),
         quantity: formData.quantity || undefined,
         condition: formData.condition || undefined,
@@ -246,6 +252,19 @@ export default function SampleInwardPage() {
                     required
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="dueAt">Due Date (Deadline) *</Label>
+                <Input
+                  id="dueAt"
+                  type="date"
+                  value={formData.dueAt}
+                  onChange={(e) => setFormData({ ...formData, dueAt: e.target.value })}
+                  disabled={isLoading}
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-2">Default is 3 days from today</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
