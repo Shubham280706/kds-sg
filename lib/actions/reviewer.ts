@@ -213,7 +213,7 @@ export async function getReviewHistory() {
       limit: 100,
     })
 
-    return { success: true, reviews: events }
+    return { success: true, reviews: events.filter(e => e.sample !== null) }
   } catch (error: any) {
     return { success: false, error: error.message }
   }

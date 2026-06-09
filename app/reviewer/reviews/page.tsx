@@ -93,11 +93,11 @@ export default function ReviewsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {reviews.map((review) => (
+                  {reviews.filter(r => r.sample !== null).map((review) => (
                     <tr key={review.id} className="hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium">{review.sample.sampleCode}</td>
-                      <td className="py-3 px-4 text-sm">{review.sample.client}</td>
-                      <td className="py-3 px-4 text-sm">{review.sample.category.name}</td>
+                      <td className="py-3 px-4 font-medium">{review.sample?.sampleCode}</td>
+                      <td className="py-3 px-4 text-sm">{review.sample?.client}</td>
+                      <td className="py-3 px-4 text-sm">{review.sample?.category?.name}</td>
                       <td className="py-3 px-4">
                         {review.toStatus === 'approved' ? (
                           <Badge className="bg-green-100 text-green-800">✓ Approved</Badge>
