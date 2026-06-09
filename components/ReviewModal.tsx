@@ -223,14 +223,14 @@ export function ReviewModal({ sample, onClose, onReload }: ReviewModalProps) {
               <Button
                 onClick={() => handleApprove('ready_to_issue')}
                 disabled={isSubmitting}
-                className="border border-green-600 text-green-700 hover:bg-green-50 bg-white"
+                className="border border-green-600 text-green-700 hover:bg-green-50 bg-white font-medium"
               >
-                {isSubmitting ? 'Approving...' : '✓ Approved & Ready for Issuing'}
+                {isSubmitting ? 'Approving...' : '✅ Approved & Ready to Issue'}
               </Button>
               <Button
                 onClick={() => handleApprove('issued')}
                 disabled={isSubmitting}
-                className="bg-emerald-700 hover:bg-emerald-800"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium"
               >
                 {isSubmitting ? 'Approving...' : '📋 Approved & Issued'}
               </Button>

@@ -9,6 +9,7 @@ interface Sample {
   id: number
   sampleCode: string
   client: string
+  status: string
   dueAt: Date | null
   category: { name: string; color: string }
   sampleTests: Array<{
@@ -63,12 +64,19 @@ export default function ReviewQueuePage() {
               (t) => t.resultValue
             ).length
             const isOverdue = sample.dueAt ? new Date(sample.dueAt) < new Date() : false
+            const isReadyToIssue = sample.status === 'ready_to_issue'
+
+            const borderColor = isReadyToIssue ? 'border-l-green-500' : 'border-l-purple-500'
+            const bgColor = isReadyToIssue ? 'bg-green-50' : 'bg-purple-50'
+            const progressColor = isReadyToIssue ? 'bg-green-500' : 'bg-purple-500'
+            const borderBgColor = isReadyToIssue ? 'border-green-200' : 'border-purple-200'
+            const statusBadge = isReadyToIssue ? '✅ Ready to Issue' : '🔍 Awaiting Review'
 
             return (
               <div
                 key={sample.id}
                 onClick={() => setSelectedSample(sample)}
-                className="p-5 rounded-lg border-l-4 border-orange-500 bg-orange-50 hover:shadow-md transition-all cursor-pointer"
+                className={`p-5 rounded-lg border-l-4 ${borderColor} ${bgColor} hover:shadow-md transition-all cursor-pointer`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -89,14 +97,16 @@ export default function ReviewQueuePage() {
                 <div className="mb-3">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
-                      className="bg-orange-500 h-2 rounded-full transition-all"
+                      className={`${progressColor} h-2 rounded-full transition-all`}
                       style={{ width: `${(completedTests / totalTests) * 100}%` }}
                     />
                   </div>
                 </div>
 
-                <div className="border-t border-orange-200 pt-3 flex items-center justify-between text-xs">
-                  <Badge variant="default">Under Review</Badge>
+                <div className={`border-t ${borderBgColor} pt-3 flex items-center justify-between text-xs`}>
+                  <Badge variant="default" className={isReadyToIssue ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}>
+                    {statusBadge}
+                  </Badge>
                   <span className={isOverdue ? 'text-red-600 font-semibold' : 'text-gray-600'}>
                     {isOverdue ? 'Overdue' : 'On time'}
                   </span>

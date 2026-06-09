@@ -22,7 +22,8 @@ export async function getReviewQueue() {
     const db = await getDb()
 
     const samples_data = await db.query.samples.findMany({
-      where: eq(samples.status, 'under_review' as any),
+      where: (samples, { inArray }) =>
+        inArray(samples.status, ['under_review' as any, 'ready_to_issue' as any]),
       with: {
         category: true,
         sampleTests: {
@@ -133,16 +134,27 @@ export async function approveReview(
     const db = await getDb()
     const userId = parseInt((session.user as any).id, 10)
 
+    // Get current sample status to determine fromStatus
+    const sample = await db.query.samples.findFirst({
+      where: eq(samples.id, sampleId),
+    })
+    if (!sample) {
+      return { success: false, error: 'Sample not found' }
+    }
+
     // Update sample status
     await db
       .update(samples)
       .set({ status: approvalType as any })
       .where(eq(samples.id, sampleId))
 
+    // Determine fromStatus - use current status for 'issued' (can come from under_review or ready_to_issue)
+    const fromStatus = approvalType === 'issued' ? sample.status : 'under_review'
+
     // Write status event
     await db.insert(statusEvents).values({
       sampleId,
-      fromStatus: 'under_review',
+      fromStatus: fromStatus,
       toStatus: approvalType,
       byUser: userId,
       note: comment || `Sample ${approvalType.replace(/_/g, ' ')} by reviewer`,

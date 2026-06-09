@@ -28,19 +28,15 @@ export async function getKPIMetrics() {
         gte(samples.createdAt, today),
     })
 
-    // Ready for review (under_review status)
+    // Ready for review (under_review + ready_to_issue statuses)
     const readyForReviewResult = await db.query.samples.findMany({
-      where: eq(samples.status, 'under_review' as any),
+      where: (samples, { inArray }) =>
+        inArray(samples.status, ['under_review' as any, 'ready_to_issue' as any]),
     })
 
     // In analysis
     const inAnalysisResult = await db.query.samples.findMany({
       where: eq(samples.status, 'in_analysis' as any),
-    })
-
-    // Ready to issue (ready_to_issue status)
-    const readyToIssueResult = await db.query.samples.findMany({
-      where: eq(samples.status, 'ready_to_issue' as any),
     })
 
     // Overdue (dueAt < now AND status not reported/closed)
@@ -58,7 +54,6 @@ export async function getKPIMetrics() {
       registeredToday: registeredTodayResult.length,
       readyForReview: readyForReviewResult.length,
       inAnalysis: inAnalysisResult.length,
-      readyToIssue: readyToIssueResult.length,
       overdue: overdueResult.length,
     }
   } catch (error: any) {
