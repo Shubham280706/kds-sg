@@ -28,7 +28,14 @@ const PROTECTED_ROUTES: RouteConfig[] = [
 ]
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+  // ✅ New - looks for NextAuth v5 cookie name
+const token = await getToken({ 
+  req: request, 
+  secret: process.env.NEXTAUTH_SECRET,
+  cookieName: process.env.NODE_ENV === 'production' 
+    ? '__Secure-authjs.session-token' 
+    : 'authjs.session-token'
+})
   const path = request.nextUrl.pathname
 
   // Check all protected routes
