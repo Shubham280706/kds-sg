@@ -26,6 +26,8 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchReviews()
+    const interval = setInterval(fetchReviews, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   async function fetchReviews() {
@@ -40,7 +42,7 @@ export default function ReviewsPage() {
     return <div className="text-center py-12">Loading review history...</div>
   }
 
-  const approvedCount = reviews.filter((r) => r.toStatus === 'approved').length
+  const approvedCount = reviews.filter((r) => ['approved', 'ready_to_issue', 'issued'].includes(r.toStatus)).length
   const rejectedCount = reviews.filter((r) => r.toStatus === 'in_analysis').length
 
   return (
@@ -99,9 +101,16 @@ export default function ReviewsPage() {
                       <td className="py-3 px-4 text-sm">{review.sample?.client}</td>
                       <td className="py-3 px-4 text-sm">{review.sample?.category?.name}</td>
                       <td className="py-3 px-4">
-                        {review.toStatus === 'approved' ? (
+                        {review.toStatus === 'approved' && (
                           <Badge className="bg-green-100 text-green-800">✓ Approved</Badge>
-                        ) : (
+                        )}
+                        {review.toStatus === 'ready_to_issue' && (
+                          <Badge className="bg-green-100 text-green-800">✅ Ready to Issue</Badge>
+                        )}
+                        {review.toStatus === 'issued' && (
+                          <Badge className="bg-emerald-100 text-emerald-800">📋 Issued</Badge>
+                        )}
+                        {review.toStatus === 'in_analysis' && (
                           <Badge className="bg-amber-100 text-amber-800">
                             ↻ Revision Requested
                           </Badge>

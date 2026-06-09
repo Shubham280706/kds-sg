@@ -3,7 +3,7 @@
 import { auth } from '@/auth/authOptions'
 import { getDb } from '@/db'
 import { samples, statusEvents, sampleTests } from '@/db/schema'
-import { eq, and, inArray, gte } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 
 async function checkAuth() {
   const session = await auth()
@@ -75,45 +75,49 @@ export async function getReviewDashboardMetrics() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Ready for review (under_review status)
+    // Ready for review = under_review + ready_to_issue
     const readyForReview = await db.query.samples.findMany({
-      where: eq(samples.status, 'under_review' as any),
+      where: (samples, { or, eq }) =>
+        or(
+          eq(samples.status, 'under_review' as any),
+          eq(samples.status, 'ready_to_issue' as any)
+        ),
     })
 
-    // Approved today
-    const approvedToday = await db.query.samples.findMany({
-      where: and(
-        eq(samples.status, 'approved' as any),
-        gte(samples.updatedAt, today)
-      ),
+    // Approved today = status changed to approved/ready_to_issue/issued today
+    const approvedToday = await db.query.statusEvents.findMany({
+      where: (events, { and, or, eq, gte }) =>
+        and(
+          gte(events.createdAt, today),
+          or(
+            eq(events.toStatus, 'approved' as any),
+            eq(events.toStatus, 'ready_to_issue' as any),
+            eq(events.toStatus, 'issued' as any)
+          )
+        ),
     })
 
-    // Rejected today (sent back to in_analysis)
-    const rejectedToday = await db.query.statusEvents.findMany({
-      where: and(
-        eq(statusEvents.fromStatus, 'under_review' as any),
-        eq(statusEvents.toStatus, 'in_analysis' as any),
-        gte(statusEvents.createdAt, today)
-      ),
+    // Pending revision = samples currently in_analysis after rejection
+    const pendingRevision = await db.query.statusEvents.findMany({
+      where: (events, { and, eq, gte }) =>
+        and(
+          eq(events.fromStatus, 'under_review' as any),
+          eq(events.toStatus, 'in_analysis' as any),
+          gte(events.createdAt, today)
+        ),
     })
 
-    // Currently pending review (in_analysis status)
-    const pendingReview = await db.query.samples.findMany({
-      where: eq(samples.status, 'in_analysis' as any),
-    })
-
-    // Calculate approval rate
-    const totalReviewedToday = approvedToday.length + rejectedToday.length
-    const approvalRate = totalReviewedToday > 0
-      ? Math.round((approvedToday.length / totalReviewedToday) * 100)
+    const totalToday = approvedToday.length + pendingRevision.length
+    const approvalRate = totalToday > 0
+      ? Math.round((approvedToday.length / totalToday) * 100)
       : 0
 
     return {
       success: true,
       readyForReview: readyForReview.length,
       approvedToday: approvedToday.length,
-      rejectedToday: rejectedToday.length,
-      pendingReview: pendingReview.length,
+      rejectedToday: pendingRevision.length,
+      pendingReview: pendingRevision.length,
       approvalRate: approvalRate,
     }
   } catch (error: any) {
@@ -274,10 +278,13 @@ export async function getReviewHistory() {
     const db = await getDb()
 
     const events = await db.query.statusEvents.findMany({
-      where: and(
-        eq(statusEvents.fromStatus, 'under_review' as any),
-        inArray(statusEvents.toStatus, ['approved' as any, 'in_analysis' as any])
-      ),
+      where: (events, { inArray }) =>
+        inArray(events.toStatus, [
+          'approved' as any,
+          'ready_to_issue' as any,
+          'issued' as any,
+          'in_analysis' as any,
+        ]),
       with: {
         sample: {
           with: {
