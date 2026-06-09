@@ -171,7 +171,7 @@ export async function rejectReview(
     if (testIdsToReopen.length > 0) {
       await db
         .update(sampleTests)
-        .set({ status: 'pending' as any, assignedTo: null })
+        .set({ status: 'pending' as any, doneAt: null, resultValue: null, resultUnit: null })
         .where(inArray(sampleTests.id, testIdsToReopen))
     }
 
