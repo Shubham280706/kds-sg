@@ -67,7 +67,7 @@ export async function createSample(data: {
   quantity?: string
   condition?: string
   remarks?: string
-  testAssignments?: Array<{ testId: number; assignedTo: number | null }>
+  testAssignments?: Array<{ testName: string; assignedTo: number | null }>
 }) {
   try {
     const { userId } = await checkAuth(['admin', 'analyst', 'reviewer'])
@@ -111,21 +111,36 @@ export async function createSample(data: {
 
     const sampleId = result[0].insertId
 
-    // Copy tests from category
-    const categoryTests = await db.query.tests.findMany({
-      where: and(eq(tests.categoryId, data.categoryId), eq(tests.active, true)),
-    })
+    // Create test records for custom test names and link to sample
+    if (data.testAssignments && data.testAssignments.length > 0) {
+      const testInsertValues = []
 
-    if (categoryTests.length > 0) {
-      const testInsertValues = categoryTests.map((test) => {
-        const assignment = data.testAssignments?.find((a) => a.testId === test.id)
-        return {
-          sampleId: sampleId,
-          testId: test.id,
-          assignedTo: assignment?.assignedTo || null,
-          status: 'pending' as const,
+      for (const assignment of data.testAssignments) {
+        // Create or get test by name
+        let testRecord = await db.query.tests.findFirst({
+          where: eq(tests.name, assignment.testName),
+        })
+
+        if (!testRecord) {
+          // Create new test record with category from sample
+          const testResult = await db.insert(tests).values({
+            categoryId: data.categoryId,
+            name: assignment.testName,
+            unit: '',
+            defaultMethod: null,
+            active: true,
+          })
+          testRecord = { id: testResult[0].insertId } as any
         }
-      })
+
+        testInsertValues.push({
+          sampleId: sampleId,
+          testId: testRecord!.id,
+          assignedTo: assignment.assignedTo || null,
+          status: 'pending' as const,
+        })
+      }
+
       await db.insert(sampleTests).values(testInsertValues)
 
       // Check if any tests have assignments

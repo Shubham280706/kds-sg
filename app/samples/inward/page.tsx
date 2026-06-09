@@ -17,14 +17,6 @@ interface Category {
   defaultTatHours: number
 }
 
-interface Test {
-  id: number
-  categoryId: number | null
-  name: string
-  unit: string
-  defaultMethod: string | null
-}
-
 interface User {
   id: number
   name: string
@@ -32,7 +24,7 @@ interface User {
 }
 
 interface TestAssignment {
-  testId: number
+  testName: string
   assignedTo: number | null
 }
 
@@ -41,7 +33,6 @@ export default function SampleInwardPage() {
   const [step, setStep] = useState(1)
   const [categories, setCategories] = useState<Category[]>([])
   const [analysts, setAnalysts] = useState<User[]>([])
-  const [tests, setTests] = useState<Test[]>([])
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -61,22 +52,18 @@ export default function SampleInwardPage() {
     remarks: '',
   })
 
+  const [testInput, setTestInput] = useState('')
   const [testAssignments, setTestAssignments] = useState<TestAssignment[]>([])
 
   useEffect(() => {
     const loadData = async () => {
-      const [catRes, testsRes, analystRes] = await Promise.all([
+      const [catRes, analystRes] = await Promise.all([
         fetch('/api/categories'),
-        fetch('/api/tests'),
         getUsersByRole('analyst'),
       ])
       if (catRes.ok) {
         const data = await catRes.json()
         setCategories(data.categories || [])
-      }
-      if (testsRes.ok) {
-        const data = await testsRes.json()
-        setTests(data.tests || [])
       }
       if (analystRes.success) {
         setAnalysts(analystRes.users || [])
@@ -87,18 +74,18 @@ export default function SampleInwardPage() {
 
   const handleCategoryChange = (categoryId: string) => {
     setFormData({ ...formData, categoryId })
-    // Clear selected tests when category changes
-    setTestAssignments([])
   }
 
-  const handleAddTest = (testId: number) => {
-    if (!testAssignments.find(ta => ta.testId === testId)) {
-      setTestAssignments([...testAssignments, { testId, assignedTo: null }])
+  const handleAddTest = (testName: string) => {
+    const trimmed = testName.trim()
+    if (trimmed && !testAssignments.find(ta => ta.testName === trimmed)) {
+      setTestAssignments([...testAssignments, { testName: trimmed, assignedTo: null }])
+      setTestInput('')
     }
   }
 
-  const handleRemoveTest = (testId: number) => {
-    setTestAssignments(testAssignments.filter(ta => ta.testId !== testId))
+  const handleRemoveTest = (testName: string) => {
+    setTestAssignments(testAssignments.filter(ta => ta.testName !== testName))
   }
 
   const handleAssignAll = (analystId: number) => {
@@ -110,10 +97,10 @@ export default function SampleInwardPage() {
     )
   }
 
-  const handleTestAssignment = (testId: number, analystId: number | null) => {
+  const handleTestAssignment = (idx: number, analystId: number | null) => {
     setTestAssignments(
-      testAssignments.map((ta) =>
-        ta.testId === testId ? { ...ta, assignedTo: analystId } : ta
+      testAssignments.map((ta, i) =>
+        i === idx ? { ...ta, assignedTo: analystId } : ta
       )
     )
   }
@@ -152,7 +139,7 @@ export default function SampleInwardPage() {
         condition: formData.condition || undefined,
         remarks: formData.remarks || undefined,
         testAssignments: testAssignments.map((ta) => ({
-          testId: ta.testId,
+          testName: ta.testName,
           assignedTo: ta.assignedTo,
         })),
       })
@@ -341,55 +328,55 @@ export default function SampleInwardPage() {
               {selectedCategory && (
                 <div className="pt-4 border-t space-y-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">Select Tests</h3>
-                    <label htmlFor="testSelect" className="block text-sm font-medium text-gray-900 mb-2">
-                      Add Test
-                    </label>
-                    <select
-                      id="testSelect"
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          handleAddTest(parseInt(e.target.value, 10))
-                          e.target.value = ''
-                        }
-                      }}
-                      disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">＋ Add a test...</option>
-                      {tests.map((test) => (
-                        <option key={test.id} value={test.id}>
-                          {test.name} ({test.unit})
-                        </option>
-                      ))}
-                    </select>
+                    <h3 className="font-semibold text-gray-900 mb-3">Add Tests</h3>
+                    <div className="flex gap-2">
+                      <Input
+                        value={testInput}
+                        onChange={(e) => setTestInput(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleAddTest(testInput)
+                          }
+                        }}
+                        placeholder="Type test name e.g. pH, BOD, COD..."
+                        disabled={isLoading}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => handleAddTest(testInput)}
+                        disabled={isLoading || !testInput.trim()}
+                      >
+                        Add
+                      </Button>
+                    </div>
                   </div>
 
                   {testAssignments.length > 0 && (
                     <div>
-                      <Badge className="mb-3">{testAssignments.length} test(s) selected</Badge>
-                      <div className="space-y-2">
-                        {testAssignments.map((ta) => {
-                          const test = tests.find(t => t.id === ta.testId)
-                          return (
-                            <div key={ta.testId} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded">
-                              <div>
-                                <p className="font-medium text-gray-900">{test?.name}</p>
-                                <p className="text-sm text-gray-600">{test?.unit}</p>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={() => handleRemoveTest(ta.testId)}
-                                disabled={isLoading}
-                              >
-                                ×
-                              </Button>
-                            </div>
-                          )
-                        })}
+                      <Badge className="mb-3">{testAssignments.length} test(s) added</Badge>
+                      <div className="flex flex-wrap gap-2">
+                        {testAssignments.map((ta) => (
+                          <div
+                            key={ta.testName}
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                          >
+                            {ta.testName}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTest(ta.testName)}
+                              className="ml-1 text-blue-600 hover:text-blue-800 font-bold"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
+
+                  {testAssignments.length === 0 && (
+                    <p className="text-sm text-gray-500 italic">Add at least one test to proceed</p>
                   )}
                 </div>
               )}
@@ -403,7 +390,7 @@ export default function SampleInwardPage() {
                 >
                   ← Back
                 </Button>
-                <Button type="submit" disabled={isLoading || !formData.categoryId}>
+                <Button type="submit" disabled={isLoading || !formData.categoryId || testAssignments.length === 0}>
                   Next: Assign Tests
                 </Button>
               </div>
@@ -420,7 +407,7 @@ export default function SampleInwardPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {tests.length > 0 && (
+              {testAssignments.length > 0 && (
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <span className="text-sm font-medium text-gray-900">Quick assign all tests to:</span>
@@ -446,39 +433,34 @@ export default function SampleInwardPage() {
                   <thead className="border-b">
                     <tr>
                       <th className="text-left py-2 px-2">Test</th>
-                      <th className="text-left py-2 px-2">Unit</th>
                       <th className="text-left py-2 px-2">Assign To</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {tests.map((test) => {
-                      const assignment = testAssignments.find((ta) => ta.testId === test.id)
-                      return (
-                        <tr key={test.id}>
-                          <td className="py-3 px-2 font-medium">{test.name}</td>
-                          <td className="py-3 px-2">{test.unit}</td>
-                          <td className="py-3 px-2">
-                            <select
-                              value={assignment?.assignedTo || ''}
-                              onChange={(e) =>
-                                handleTestAssignment(
-                                  test.id,
-                                  e.target.value ? parseInt(e.target.value, 10) : null
-                                )
-                              }
-                              className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            >
-                              <option value="">Unassigned</option>
-                              {analysts.map((a) => (
-                                <option key={a.id} value={a.id}>
-                                  {a.name}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-                        </tr>
-                      )
-                    })}
+                    {testAssignments.map((ta, idx) => (
+                      <tr key={`${ta.testName}-${idx}`}>
+                        <td className="py-3 px-2 font-medium">{ta.testName}</td>
+                        <td className="py-3 px-2">
+                          <select
+                            value={ta.assignedTo || ''}
+                            onChange={(e) =>
+                              handleTestAssignment(
+                                idx,
+                                e.target.value ? parseInt(e.target.value, 10) : null
+                              )
+                            }
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
+                          >
+                            <option value="">Unassigned</option>
+                            {analysts.map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
