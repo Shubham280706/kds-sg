@@ -116,6 +116,39 @@ export default function SampleDetailPage() {
               <p className="text-sm text-gray-600">Received Date</p>
               <p className="font-medium">{new Date(sample.receivedAt).toLocaleDateString()}</p>
             </div>
+            <div>
+              <p className="text-sm text-gray-600">Due Date</p>
+              {sample.dueAt ? (
+                <div className="mt-1">
+                  {(() => {
+                    const now = new Date()
+                    const dueDate = new Date(sample.dueAt)
+                    const timeDiff = dueDate.getTime() - now.getTime()
+                    const hoursRemaining = timeDiff / (1000 * 60 * 60)
+
+                    let textColor = 'text-green-600'
+                    let label = '✓ On Time'
+
+                    if (timeDiff < 0) {
+                      textColor = 'text-red-600'
+                      label = '⚠ Overdue'
+                    } else if (hoursRemaining < 24) {
+                      textColor = 'text-amber-600'
+                      label = '⚡ Due Soon'
+                    }
+
+                    return (
+                      <div>
+                        <p className={`font-medium ${textColor}`}>{dueDate.toLocaleDateString()}</p>
+                        <p className={`text-xs ${textColor} mt-0.5`}>{label}</p>
+                      </div>
+                    )
+                  })()}
+                </div>
+              ) : (
+                <p className="font-medium text-gray-500">-</p>
+              )}
+            </div>
           </div>
           {sample.remarks && (
             <div>
