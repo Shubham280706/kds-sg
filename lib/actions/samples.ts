@@ -378,32 +378,30 @@ export async function getSampleBoard() {
       },
     })
 
-    // Sort by priority
+    // Sort by priority: active/newest first, completed/oldest last
     const statusPriority: Record<string, number> = {
-      registered: 1,      // ← NEW: show first
-  assigned: 2,        // ← active work
-  in_analysis: 3,     // ← active work
-  under_review: 4,    // ← waiting review
-  approved: 5,        // ← done
-  ready_to_issue: 5.5,  // ← post-approval
-  issued: 5.7,        // ← final issuance
-  reported: 6,        // ← done
-  closed: 7,
+      registered: 1,        // newest, needs action
+      assigned: 2,          // active work
+      in_analysis: 3,       // active work
+      under_review: 4,      // waiting review
+      ready_to_issue: 5,    // almost done
+      approved: 6,          // done
+      reported: 7,          // done
+      issued: 8,            // completed
+      closed: 9,            // archived
     }
 
     const sortedSamples = allSamples.sort((a, b) => {
       const priorityA = statusPriority[a.status] || 999
       const priorityB = statusPriority[b.status] || 999
 
-      // First sort by priority
+      // First sort by status priority
       if (priorityA !== priorityB) {
         return priorityA - priorityB
       }
 
-      // Within same priority, sort by most recently updated
-      const timeA = new Date(a.updatedAt).getTime()
-      const timeB = new Date(b.updatedAt).getTime()
-      return timeB - timeA // Most recent first
+      // Within same status, sort by createdAt DESC (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
 
     const validSamples = sortedSamples.filter(s => s !== null && s !== undefined)

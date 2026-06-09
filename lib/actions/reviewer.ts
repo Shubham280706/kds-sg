@@ -33,7 +33,7 @@ export async function getReviewQueue() {
           },
         },
       },
-      orderBy: (samples, { asc }) => [asc(samples.dueAt)],
+      orderBy: (samples, { desc }) => [desc(samples.createdAt)],
     })
 
     return { success: true, samples: samples_data }
@@ -58,7 +58,7 @@ export async function getReadyToIssueQueue() {
           },
         },
       },
-      orderBy: (samples, { asc }) => [asc(samples.dueAt)],
+      orderBy: (samples, { desc }) => [desc(samples.createdAt)],
     })
 
     return { success: true, samples: samples_data }

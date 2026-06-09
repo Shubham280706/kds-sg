@@ -84,11 +84,28 @@ export default function DashboardPage() {
     ? samples.filter((s) => s.category?.name === selectedCategory)
     : samples
 
-  // Sort by priority and due date
+  // Sort: active/newest first, completed/oldest last
+  const statusPriority: Record<string, number> = {
+    registered: 1,
+    assigned: 2,
+    in_analysis: 3,
+    under_review: 4,
+    ready_to_issue: 5,
+    approved: 6,
+    reported: 7,
+    issued: 8,
+    closed: 9,
+  }
+
   const sortedSamples = [...filteredSamples].sort((a, b) => {
-    const dateA = new Date(a.dueAt).getTime()
-    const dateB = new Date(b.dueAt).getTime()
-    return dateA - dateB
+    const priorityA = statusPriority[a.status] || 999
+    const priorityB = statusPriority[b.status] || 999
+
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB
+    }
+
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 
   if (isLoading) {
