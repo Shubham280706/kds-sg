@@ -204,12 +204,12 @@ export default function SampleInwardPage() {
               </div>
 
               <div>
-                <Label htmlFor="source">Source</Label>
+                <Label htmlFor="source">Sample Name</Label>
                 <Input
                   id="source"
                   value={formData.source}
                   onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                  placeholder="e.g., Pipe outlet, River near bridge"
+                  placeholder="e.g., River Water, Effluent Sample"
                   disabled={isLoading}
                 />
               </div>
