@@ -6,32 +6,36 @@ import { TestsClient } from '@/components/admin/TestsClient'
 export const dynamic = 'force-dynamic'
 
 export default async function TestsPage() {
+  let testsData: any[] = []
   let categoriesData: any[] = []
   try {
     const db = await getDb()
 
-    categoriesData = await db.query.categories.findMany({
-      where: eq(categories.active, true),
-      orderBy: (categories, { asc }) => [asc(categories.code)],
-      with: {
-        tests: {
-          where: eq(tests.active, true),
-          orderBy: (tests, { asc }) => [asc(tests.name)],
-        },
-      },
-    })
+    const [testsResult, categoriesResult] = await Promise.all([
+      db.query.tests.findMany({
+        where: eq(tests.active, true),
+        orderBy: (tests, { asc }) => [asc(tests.name)],
+      }),
+      db.query.categories.findMany({
+        where: eq(categories.active, true),
+        orderBy: (categories, { asc }) => [asc(categories.code)],
+      }),
+    ])
+
+    testsData = testsResult
+    categoriesData = categoriesResult
   } catch (error) {
-    console.error('Failed to fetch categories:', error)
+    console.error('Failed to fetch tests:', error)
   }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Tests</h1>
-        <p className="text-gray-600 mt-2">Manage tests under each category</p>
+        <p className="text-gray-600 mt-2">Manage all available tests</p>
       </div>
 
-      <TestsClient initialCategories={categoriesData} />
+      <TestsClient initialTests={testsData} initialCategories={categoriesData} />
     </div>
   )
 }

@@ -19,7 +19,7 @@ interface Category {
 
 interface Test {
   id: number
-  categoryId: number
+  categoryId: number | null
   name: string
   unit: string
   defaultMethod: string | null
@@ -65,13 +65,18 @@ export default function SampleInwardPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const [catRes, analystRes] = await Promise.all([
+      const [catRes, testsRes, analystRes] = await Promise.all([
         fetch('/api/categories'),
+        fetch('/api/tests'),
         getUsersByRole('analyst'),
       ])
       if (catRes.ok) {
         const data = await catRes.json()
         setCategories(data.categories || [])
+      }
+      if (testsRes.ok) {
+        const data = await testsRes.json()
+        setTests(data.tests || [])
       }
       if (analystRes.success) {
         setAnalysts(analystRes.users || [])
@@ -80,27 +85,20 @@ export default function SampleInwardPage() {
     loadData()
   }, [])
 
-  const handleCategoryChange = async (categoryId: string) => {
+  const handleCategoryChange = (categoryId: string) => {
     setFormData({ ...formData, categoryId })
+    // Clear selected tests when category changes
+    setTestAssignments([])
+  }
 
-    if (!categoryId) {
-      setTests([])
-      setTestAssignments([])
-      return
+  const handleAddTest = (testId: number) => {
+    if (!testAssignments.find(ta => ta.testId === testId)) {
+      setTestAssignments([...testAssignments, { testId, assignedTo: null }])
     }
+  }
 
-    // Fetch tests for category
-    const res = await fetch(`/api/categories/${categoryId}/tests`)
-    if (res.ok) {
-      const data = await res.json()
-      setTests(data.tests || [])
-      // Initialize test assignments
-      const assignments = (data.tests || []).map((t: Test) => ({
-        testId: t.id,
-        assignedTo: null,
-      }))
-      setTestAssignments(assignments)
-    }
+  const handleRemoveTest = (testId: number) => {
+    setTestAssignments(testAssignments.filter(ta => ta.testId !== testId))
   }
 
   const handleAssignAll = (analystId: number) => {
@@ -341,23 +339,58 @@ export default function SampleInwardPage() {
               </div>
 
               {selectedCategory && (
-                <div className="pt-4 border-t">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Tests for {selectedCategory.name}
-                  </h3>
-                  <Badge>{tests.length} tests will be attached</Badge>
-
-                  <div className="mt-4 space-y-2">
-                    {tests.map((test) => (
-                      <div key={test.id} className="p-3 bg-gray-50 border border-gray-200 rounded">
-                        <p className="font-medium text-gray-900">{test.name}</p>
-                        <p className="text-sm text-gray-600">{test.unit}</p>
-                        {test.defaultMethod && (
-                          <p className="text-xs text-gray-500">Method: {test.defaultMethod}</p>
-                        )}
-                      </div>
-                    ))}
+                <div className="pt-4 border-t space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Select Tests</h3>
+                    <label htmlFor="testSelect" className="block text-sm font-medium text-gray-900 mb-2">
+                      Add Test
+                    </label>
+                    <select
+                      id="testSelect"
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          handleAddTest(parseInt(e.target.value, 10))
+                          e.target.value = ''
+                        }
+                      }}
+                      disabled={isLoading}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">＋ Add a test...</option>
+                      {tests.map((test) => (
+                        <option key={test.id} value={test.id}>
+                          {test.name} ({test.unit})
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  {testAssignments.length > 0 && (
+                    <div>
+                      <Badge className="mb-3">{testAssignments.length} test(s) selected</Badge>
+                      <div className="space-y-2">
+                        {testAssignments.map((ta) => {
+                          const test = tests.find(t => t.id === ta.testId)
+                          return (
+                            <div key={ta.testId} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded">
+                              <div>
+                                <p className="font-medium text-gray-900">{test?.name}</p>
+                                <p className="text-sm text-gray-600">{test?.unit}</p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleRemoveTest(ta.testId)}
+                                disabled={isLoading}
+                              >
+                                ×
+                              </Button>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
