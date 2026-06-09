@@ -74,7 +74,6 @@ export function SampleCard(props: SampleCardProps) {
             />
             <p className="text-sm text-gray-700 font-medium">{props.categoryName}</p>
           </div>
-          <p className="text-xs text-gray-600">Client: {props.client}</p>
         </div>
 
         {/* Tests List */}

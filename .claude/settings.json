@@ -39,7 +39,8 @@
       "Bash(mysql -u root -puWQrCWOhjzehJboxBSHCEQxtOYsXmqpA -h acela.proxy.rlwy.net -P 41660 railway -e \"SHOW TABLES;\")",
       "Bash(DATABASE_URL=\"mysql://root:uWQrCWOhjzehJboxBSHCEQxtOYsXmqpA@acela.proxy.rlwy.net:41660/railway\" npx drizzle-kit push)",
       "Bash(DATABASE_URL=\"mysql://root:uWQrCWOhjzehJboxBSHCEQxtOYsXmqpA@acela.proxy.rlwy.net:41660/railway\" SEED_ADMIN_EMAIL=\"admin@lab.local\" SEED_ADMIN_PASSWORD=\"demo123\" npx tsx scripts/seed.ts)",
-      "Bash(mysql -u root -puWQrCWOhjzehJboxBSHCEQxtOYsXmqpA -h acela.proxy.rlwy.net -P 41660 railway -e \"SELECT id, email, role, active FROM users WHERE role='admin';\")"
+      "Bash(mysql -u root -puWQrCWOhjzehJboxBSHCEQxtOYsXmqpA -h acela.proxy.rlwy.net -P 41660 railway -e \"SELECT id, email, role, active FROM users WHERE role='admin';\")",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "/Users/shubham/coding/KDS-SG/.git",

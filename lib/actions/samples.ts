@@ -383,7 +383,7 @@ export async function getSampleBoard() {
       return timeB - timeA // Most recent first
     })
 
-    return { success: true, samples: sortedSamples, timestamp: new Date() }
+    return { success: true, samples: sortedSamples.map(s => ({ ...s, code: s.sampleCode })), timestamp: new Date() }
   } catch (error: any) {
     return { success: false, error: error.message || 'Failed to fetch board' }
   }
