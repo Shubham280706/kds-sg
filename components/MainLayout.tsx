@@ -83,7 +83,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             Workspace
           </div>
 
-          <NavLink href="/dashboard" label="KDS Board" />
+          <NavLink href="/dashboard" label="SG Board" />
           <NavLink href="/samples" label="Samples" />
           <NavLink href="/samples/inward" label="Register Sample" />
 
