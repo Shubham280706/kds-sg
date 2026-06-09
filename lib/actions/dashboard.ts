@@ -22,13 +22,10 @@ export async function getKPIMetrics() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Registered today
+    // Registered today (regardless of current status)
     const registeredTodayResult = await db.query.samples.findMany({
-      where: (samples, { gte, eq: dbEq }) =>
-        and(
-          dbEq(samples.status, 'registered' as any),
-          gte(samples.createdAt, today)
-        ),
+      where: (samples, { gte }) =>
+        gte(samples.createdAt, today),
     })
 
     // Ready for review (under_review status)

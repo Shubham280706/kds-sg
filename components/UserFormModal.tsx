@@ -78,7 +78,7 @@ export function UserFormModal({ isOpen, onClose, onSuccess, editingUser }: UserF
       newErrors.role = 'Role is required'
     }
 
-    // Password validation
+    // Password validation (required only on create)
     if (!editingUser && !formData.password) {
       newErrors.password = 'Password is required'
     }
@@ -134,12 +134,15 @@ export function UserFormModal({ isOpen, onClose, onSuccess, editingUser }: UserF
 
     try {
       if (editingUser) {
-        const result = await updateUser(editingUser.id, {
-          email: formData.email,
+        const updateData: any = {
           name: formData.name,
           role: formData.role,
           active: formData.active,
-        })
+        }
+        if (formData.password) {
+          updateData.password = formData.password
+        }
+        const result = await updateUser(editingUser.id, updateData)
         if (!result.success) {
           setErrors({ submit: result.error || 'Failed to update user' })
           setIsLoading(false)
@@ -264,11 +267,10 @@ export function UserFormModal({ isOpen, onClose, onSuccess, editingUser }: UserF
           </div>
 
           {/* Password Field */}
-          {!editingUser && (
-            <div>
-              <Label htmlFor="password" className="text-sm font-medium text-gray-900 block mb-2">
-                Password *
-              </Label>
+          <div>
+            <Label htmlFor="password" className="text-sm font-medium text-gray-900 block mb-2">
+              Password {!editingUser && '*'}
+            </Label>
               <Input
                 id="password"
                 type="password"
@@ -310,11 +312,12 @@ export function UserFormModal({ isOpen, onClose, onSuccess, editingUser }: UserF
 
               {!formData.password && (
                 <p className="text-xs text-gray-600 mt-2">
-                  Minimum 8 characters. User can change after first login.
+                  {editingUser
+                    ? 'Leave blank to keep existing password'
+                    : 'Minimum 8 characters. User can change after first login.'}
                 </p>
               )}
             </div>
-          )}
 
           {/* Active Checkbox */}
           <div className="pt-2">

@@ -61,11 +61,11 @@ export function SampleCard(props: SampleCardProps) {
   return (
     <Link href={`/samples/${props.id}`}>
       <div
-        className={`p-5 border-l-4 border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-all ${accentColor} ${bgColor} h-full flex flex-col`}
+        className={`p-3 border-l-4 border-gray-200 rounded-lg cursor-pointer hover:shadow-md transition-all ${accentColor} ${bgColor} h-full flex flex-col`}
       >
         {/* Header */}
-        <div className="mb-4">
-          <h2 className="font-bold text-lg text-gray-900 font-mono break-words mb-2">{props.code}</h2>
+        <div className="mb-2">
+          <h2 className="font-bold text-base text-gray-900 font-mono break-words mb-2">{props.code}</h2>
           <div className="flex items-center gap-2 mb-2">
             <div
               className="w-3 h-3 rounded-full flex-shrink-0"

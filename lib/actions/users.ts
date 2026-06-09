@@ -54,31 +54,32 @@ export async function createUser(data: {
 }
 
 export async function updateUser(userId: number, data: {
-  email: string
   name: string
   role: string
   active: boolean
+  password?: string
 }) {
   try {
     await checkAdmin()
     const db = await getDb()
 
-    // Check email unique (if changed)
-    const existing = await db.query.users.findFirst({
-      where: eq(users.email, data.email),
-    })
-    if (existing && existing.id !== userId) {
-      return { success: false, error: 'Email already exists' }
+    const updateData: any = {
+      name: data.name,
+      role: data.role as any,
+      active: data.active,
+    }
+
+    // Hash and update password if provided
+    if (data.password) {
+      if (data.password.length < 8) {
+        return { success: false, error: 'Password must be at least 8 characters' }
+      }
+      updateData.password = await bcryptjs.hash(data.password, 10)
     }
 
     await db
       .update(users)
-      .set({
-        email: data.email,
-        name: data.name,
-        role: data.role as any,
-        active: data.active,
-      })
+      .set(updateData)
       .where(eq(users.id, userId))
 
     return { success: true }
