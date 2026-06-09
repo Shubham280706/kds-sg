@@ -45,7 +45,7 @@ export const samples = mysqlTable('samples', {
   quantity: varchar('quantity', { length: 100 }),
   condition: varchar('condition', { length: 255 }),
   remarks: text('remarks'),
-  status: mysqlEnum('status', ['registered', 'assigned', 'in_analysis', 'under_review', 'approved', 'reported', 'closed']).default('registered').notNull(),
+  status: mysqlEnum('status', ['registered', 'assigned', 'in_analysis', 'under_review', 'approved', 'ready_to_issue', 'issued', 'reported', 'closed']).default('registered').notNull(),
   dueAt: datetime('due_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),

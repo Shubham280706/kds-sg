@@ -27,6 +27,7 @@ interface KPIMetrics {
   registeredToday: number
   readyForReview: number
   inAnalysis: number
+  readyToIssue: number
   overdue: number
 }
 
@@ -55,10 +56,11 @@ export default function DashboardPage() {
         const kpiResult = await getKPIMetrics()
         if (kpiResult.success) {
           setKpis({
-            registeredToday: kpiResult.registeredToday,
-            readyForReview: kpiResult.readyForReview,
-            inAnalysis: kpiResult.inAnalysis,
-            overdue: kpiResult.overdue,
+            registeredToday: kpiResult.registeredToday || 0,
+            readyForReview: kpiResult.readyForReview || 0,
+            inAnalysis: kpiResult.inAnalysis || 0,
+            readyToIssue: kpiResult.readyToIssue || 0,
+            overdue: kpiResult.overdue || 0,
           })
         }
       } catch (error) {
@@ -112,10 +114,11 @@ export default function DashboardPage() {
 
       {/* KPI Strip */}
       {kpis && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <KPICard label="Registered Today" value={kpis.registeredToday} />
           <KPICard label="Ready for Review" value={kpis.readyForReview} color="green" />
           <KPICard label="In Analysis" value={kpis.inAnalysis} color="blue" />
+          <KPICard label="Ready to Issue" value={kpis.readyToIssue} color="green" />
           <KPICard label="Overdue" value={kpis.overdue} color={kpis.overdue > 0 ? 'red' : 'default'} />
         </div>
       )}

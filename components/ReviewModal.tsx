@@ -36,11 +36,11 @@ export function ReviewModal({ sample, onClose, onReload }: ReviewModalProps) {
   const [selectedTests, setSelectedTests] = useState<number[]>([])
   const [error, setError] = useState('')
 
-  const handleApprove = async () => {
+  const handleApprove = async (approvalType: 'ready_to_issue' | 'issued') => {
     setIsSubmitting(true)
     setError('')
     try {
-      const result = await approveReview(sample.id, comment)
+      const result = await approveReview(sample.id, comment, approvalType)
       if (result.success) {
         await onReload()
         onClose()
@@ -221,11 +221,18 @@ export function ReviewModal({ sample, onClose, onReload }: ReviewModalProps) {
                 Request Revision
               </Button>
               <Button
-                onClick={handleApprove}
+                onClick={() => handleApprove('ready_to_issue')}
                 disabled={isSubmitting}
-                className="bg-green-600 hover:bg-green-700"
+                className="border border-green-600 text-green-700 hover:bg-green-50 bg-white"
               >
-                {isSubmitting ? 'Approving...' : '✓ Approve'}
+                {isSubmitting ? 'Approving...' : '✓ Approved & Ready for Issuing'}
+              </Button>
+              <Button
+                onClick={() => handleApprove('issued')}
+                disabled={isSubmitting}
+                className="bg-emerald-700 hover:bg-emerald-800"
+              >
+                {isSubmitting ? 'Approving...' : '📋 Approved & Issued'}
               </Button>
             </>
           ) : (

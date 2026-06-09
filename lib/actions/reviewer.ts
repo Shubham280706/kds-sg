@@ -123,7 +123,11 @@ export async function getSampleForReview(sampleId: number) {
   }
 }
 
-export async function approveReview(sampleId: number, comment: string = '') {
+export async function approveReview(
+  sampleId: number,
+  comment: string = '',
+  approvalType: 'approved' | 'ready_to_issue' | 'issued' = 'ready_to_issue'
+) {
   try {
     const session = await checkAuth()
     const db = await getDb()
@@ -132,16 +136,52 @@ export async function approveReview(sampleId: number, comment: string = '') {
     // Update sample status
     await db
       .update(samples)
-      .set({ status: 'approved' as any })
+      .set({ status: approvalType as any })
       .where(eq(samples.id, sampleId))
 
     // Write status event
     await db.insert(statusEvents).values({
       sampleId,
       fromStatus: 'under_review',
-      toStatus: 'approved',
+      toStatus: approvalType,
       byUser: userId,
-      note: comment || 'Sample approved by reviewer',
+      note: comment || `Sample ${approvalType.replace(/_/g, ' ')} by reviewer`,
+      createdAt: new Date(),
+    })
+
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
+export async function markAsIssued(sampleId: number) {
+  try {
+    const session = await checkAuth()
+    const db = await getDb()
+    const userId = parseInt((session.user as any).id, 10)
+
+    // Get current status to determine fromStatus
+    const sample = await db.query.samples.findFirst({
+      where: eq(samples.id, sampleId),
+    })
+    if (!sample) {
+      return { success: false, error: 'Sample not found' }
+    }
+
+    // Update sample status
+    await db
+      .update(samples)
+      .set({ status: 'issued' as any })
+      .where(eq(samples.id, sampleId))
+
+    // Write status event
+    await db.insert(statusEvents).values({
+      sampleId,
+      fromStatus: sample.status,
+      toStatus: 'issued',
+      byUser: userId,
+      note: 'Sample marked as issued',
       createdAt: new Date(),
     })
 

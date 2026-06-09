@@ -385,8 +385,10 @@ export async function getSampleBoard() {
   in_analysis: 3,     // ← active work
   under_review: 4,    // ← waiting review
   approved: 5,        // ← done
+  ready_to_issue: 5.5,  // ← post-approval
+  issued: 5.7,        // ← final issuance
   reported: 6,        // ← done
-  closed: 7,  
+  closed: 7,
     }
 
     const sortedSamples = allSamples.sort((a, b) => {

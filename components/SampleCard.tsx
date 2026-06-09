@@ -28,6 +28,8 @@ const statusBorderColors: Record<string, string> = {
   in_analysis: 'border-l-amber-500',
   under_review: 'border-l-purple-500',
   approved: 'border-l-green-500',
+  ready_to_issue: 'border-l-green-400',
+  issued: 'border-l-emerald-600',
   reported: 'border-l-emerald-500',
   closed: 'border-l-gray-400',
 }
@@ -38,6 +40,8 @@ const statusBgColors: Record<string, string> = {
   in_analysis: 'bg-amber-50',
   under_review: 'bg-purple-50',
   approved: 'bg-green-50',
+  ready_to_issue: 'bg-green-50',
+  issued: 'bg-emerald-50',
   reported: 'bg-emerald-50',
   closed: 'bg-gray-50',
 }
@@ -48,6 +52,8 @@ const statusLabels: Record<string, string> = {
   in_analysis: 'In Analysis',
   under_review: '⏳ Awaiting Approval',
   approved: '✅ Approved',
+  ready_to_issue: '✅ Ready to Issue',
+  issued: '📋 Issued',
   reported: 'Reported',
   closed: 'Closed',
 }
@@ -58,6 +64,8 @@ const statusBadgeStyles: Record<string, { bg: string; text: string }> = {
   in_analysis: { bg: 'bg-amber-100', text: 'text-amber-800' },
   under_review: { bg: 'bg-purple-100', text: 'text-purple-800' },
   approved: { bg: 'bg-green-100', text: 'text-green-800' },
+  ready_to_issue: { bg: 'bg-green-100', text: 'text-green-800' },
+  issued: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
   reported: { bg: 'bg-emerald-100', text: 'text-emerald-800' },
   closed: { bg: 'bg-gray-100', text: 'text-gray-800' },
 }
