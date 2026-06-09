@@ -30,14 +30,7 @@ interface KPIMetrics {
   overdue: number
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  registered: 'Registered',
-  assigned: 'Assigned',
-  in_analysis: 'In Analysis',
-  under_review: 'Under Review',
-  approved: 'Approved',
-  reported: 'Reported',
-}
+
 
 export default function DashboardPage() {
   const [samples, setSamples] = useState<Sample[]>([])
