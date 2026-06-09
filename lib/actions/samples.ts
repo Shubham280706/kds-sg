@@ -359,13 +359,13 @@ export async function getSampleBoard() {
 
     // Sort by priority
     const statusPriority: Record<string, number> = {
-      assigned: 1,
-      in_analysis: 2,
-      under_review: 3,
-      approved: 4,
-      registered: 5,
-      reported: 6,
-      closed: 7,
+      registered: 1,      // ← NEW: show first
+  assigned: 2,        // ← active work
+  in_analysis: 3,     // ← active work
+  under_review: 4,    // ← waiting review
+  approved: 5,        // ← done
+  reported: 6,        // ← done
+  closed: 7,  
     }
 
     const sortedSamples = allSamples.sort((a, b) => {
