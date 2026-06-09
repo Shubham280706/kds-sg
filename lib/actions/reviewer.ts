@@ -42,6 +42,31 @@ export async function getReviewQueue() {
   }
 }
 
+export async function getReadyToIssueQueue() {
+  try {
+    await checkAuth()
+    const db = await getDb()
+
+    const samples_data = await db.query.samples.findMany({
+      where: eq(samples.status, 'ready_to_issue' as any),
+      with: {
+        category: true,
+        sampleTests: {
+          with: {
+            test: true,
+            assignedToUser: true,
+          },
+        },
+      },
+      orderBy: (samples, { asc }) => [asc(samples.dueAt)],
+    })
+
+    return { success: true, samples: samples_data }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+}
+
 export async function getReviewDashboardMetrics() {
   try {
     await checkAuth()

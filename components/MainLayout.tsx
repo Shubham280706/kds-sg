@@ -99,6 +99,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
               </div>
               <NavLink href="/reviewer/dashboard" label="Review Dashboard" />
               <NavLink href="/reviewer/queue" label="Review Queue" />
+              <NavLink href="/reviewer/ready-to-issue" label="Ready to Issue" />
               <NavLink href="/reviewer/reviews" label="My Reviews" />
             </>
           )}

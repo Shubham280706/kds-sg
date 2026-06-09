@@ -220,20 +220,20 @@ export function ReviewModal({ sample, onClose, onReload }: ReviewModalProps) {
               >
                 Request Revision
               </Button>
-              <Button
+              <button
                 onClick={() => handleApprove('ready_to_issue')}
                 disabled={isSubmitting}
-                className="border border-green-600 text-green-700 hover:bg-green-50 bg-white font-medium"
+                className="px-4 py-2 border-2 border-green-500 text-green-700 rounded-lg font-medium hover:bg-green-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Approving...' : '✅ Approved & Ready to Issue'}
-              </Button>
-              <Button
+                {isSubmitting ? '⏳ Approving...' : '✅ Approved & Ready to Issue'}
+              </button>
+              <button
                 onClick={() => handleApprove('issued')}
                 disabled={isSubmitting}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium"
+                className="px-4 py-2 bg-green-800 text-white rounded-lg font-medium hover:bg-green-900 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? 'Approving...' : '📋 Approved & Issued'}
-              </Button>
+                {isSubmitting ? '⏳ Approving...' : '📋 Approved & Issued'}
+              </button>
             </>
           ) : (
             <>
