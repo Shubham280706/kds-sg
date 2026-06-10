@@ -66,9 +66,15 @@ export default function AnalystQueuePage() {
     }
 
     fetchTests()
-    const interval = setInterval(fetchTests, 3000)
+    const interval = setInterval(() => {
+      // Don't refetch while user is editing a remark — it remounts the
+      // textarea and resets the cursor.
+      if (expandedTest === null) {
+        fetchTests()
+      }
+    }, 3000)
     return () => clearInterval(interval)
-  }, [])
+  }, [expandedTest])
 
   // Group tests by sample (simple forEach approach)
   const groupedSamples: Record<number, SampleCardData> = {}
@@ -267,7 +273,6 @@ export default function AnalystQueuePage() {
                           placeholder="Add any remarks (optional)..."
                           className="w-full border rounded p-2 text-sm resize-none"
                           rows={3}
-                          autoFocus
                         />
                       </div>
                       <div className="flex gap-2">
