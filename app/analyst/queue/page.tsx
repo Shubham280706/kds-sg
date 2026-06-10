@@ -41,11 +41,62 @@ interface SampleCardData {
   tests: Test[]
 }
 
+function RemarkForm({
+  testId,
+  sampleId,
+  onDone,
+  onCancel,
+  isProcessing,
+}: {
+  testId: number
+  sampleId: number
+  onDone: (testId: number, sampleId: number, remark: string) => void
+  onCancel: () => void
+  isProcessing: boolean
+}) {
+  const [value, setValue] = useState('')
+  return (
+    <div className="mt-2 ml-6 p-3 bg-blue-100 border border-blue-200 rounded space-y-2">
+      <div>
+        <Label htmlFor={`remark-${testId}`} className="text-xs">
+          Remark (Optional)
+        </Label>
+        <textarea
+          id={`remark-${testId}`}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Add any remarks (optional)..."
+          className="w-full border rounded p-2 text-sm resize-none"
+          rows={3}
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          onClick={() => onDone(testId, sampleId, value)}
+          disabled={isProcessing}
+          size="sm"
+          className="text-xs"
+        >
+          {isProcessing ? 'Marking...' : 'Done'}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={onCancel}
+          disabled={isProcessing}
+          size="sm"
+          className="text-xs"
+        >
+          Cancel
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function AnalystQueuePage() {
   const [allTests, setAllTests] = useState<Test[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedTest, setExpandedTest] = useState<number | null>(null)
-  const [remarks, setRemarks] = useState<Record<number, string>>({})
   const [completingTests, setCompletingTests] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -112,12 +163,11 @@ export default function AnalystQueuePage() {
   const completedTestsCount = allTests.filter((t) => t.status === 'done').length
   const pendingTestsCount = totalTests - completedTestsCount
 
-  const handleCompleteTest = async (testId: number, sampleId: number) => {
+  const handleCompleteTest = async (testId: number, sampleId: number, remark: string) => {
     setCompletingTests((prev) => new Set(prev).add(testId))
     setError('')
 
     try {
-      const remark = remarks[testId] || ''
       const result = await completeTest(
         testId,
         sampleId,
@@ -131,10 +181,6 @@ export default function AnalystQueuePage() {
           prev.map((t) => (t.id === testId ? { ...t, status: 'done' } : t))
         )
         setExpandedTest(null)
-        setRemarks((prev) => ({
-          ...prev,
-          [testId]: '',
-        }))
       } else {
         setError(result.error || 'Failed to complete test')
       }
@@ -254,52 +300,14 @@ export default function AnalystQueuePage() {
                     </div>
                   </div>
 
-                  {/* Inline Result Form */}
                   {expandedTest === test.id && test.status !== 'done' && (
-                    <div className="mt-2 ml-6 p-3 bg-blue-100 border border-blue-200 rounded space-y-2">
-                      <div>
-                        <Label htmlFor={`remark-${test.id}`} className="text-xs">
-                          Remark (Optional)
-                        </Label>
-                        <textarea
-                          id={`remark-${test.id}`}
-                          value={remarks[test.id] || ''}
-                          onChange={(e) =>
-                            setRemarks((prev) => ({
-                              ...prev,
-                              [test.id]: e.target.value,
-                            }))
-                          }
-                          placeholder="Add any remarks (optional)..."
-                          className="w-full border rounded p-2 text-sm resize-none"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => handleCompleteTest(test.id, test.sampleId)}
-                          disabled={completingTests.has(test.id)}
-                          size="sm"
-                          className="text-xs"
-                        >
-                          {completingTests.has(test.id) ? 'Marking...' : 'Done'}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setExpandedTest(null)
-                            setRemarks((prev) => ({
-                              ...prev,
-                              [test.id]: '',
-                            }))
-                          }}
-                          className="text-xs"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
+                    <RemarkForm
+                      testId={test.id}
+                      sampleId={test.sampleId}
+                      onDone={handleCompleteTest}
+                      onCancel={() => setExpandedTest(null)}
+                      isProcessing={completingTests.has(test.id)}
+                    />
                   )}
                 </div>
               ))}
