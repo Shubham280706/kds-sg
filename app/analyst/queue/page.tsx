@@ -258,14 +258,14 @@ export default function AnalystQueuePage() {
                         <textarea
                           id={`remark-${test.id}`}
                           value={resultData[test.id]?.remark || ''}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [test.id]: {
-                                remark: e.target.value,
-                              },
-                            })
-                          }
+                         
+                          onChange={(e) => {
+  const value = e.target.value
+  setResultData(prev => ({
+    ...prev,
+    [test.id]: { remark: value }
+  }))
+}}
                           placeholder="Add any remarks (optional)..."
                           className="text-xs w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                           rows={2}
