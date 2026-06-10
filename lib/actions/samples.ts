@@ -22,26 +22,23 @@ async function checkAuth(requiredRoles?: string[]) {
 async function generateSampleId(): Promise<string> {
   const db = await getDb()
   const today = new Date()
-  const dateStr = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
-  const todayStart = new Date(today)
-  todayStart.setHours(0, 0, 0, 0)
-  const todayEnd = new Date(today)
-  todayEnd.setHours(23, 59, 59, 999)
+  const yearMonth = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}`
 
-  // Find max sequence for today
-  const maxSeq = await db.query.samples.findFirst({
-    where: (samples, { like }) => like(samples.sampleCode, `SG/${dateStr}/%`),
-    orderBy: (samples, { desc }) => [desc(samples.sampleCode)],
+  // Find the last sample by id (highest id = last created)
+  const lastSample = await db.query.samples.findFirst({
+    orderBy: (samples: any, { desc }: any) => [desc(samples.id)],
   })
 
-  let seq = 1
-  if (maxSeq && maxSeq.sampleCode) {
-    const parts = maxSeq.sampleCode.split('/')
-    const lastSeq = parseInt(parts[2] || '0', 10)
-    seq = lastSeq + 1
+  let nextNumber = 1
+  if (lastSample?.sampleCode) {
+    // Extract number from last code e.g. SG/202606/007 → 7
+    const parts = lastSample.sampleCode.split('/')
+    const lastNum = parseInt(parts[2] || '0', 10)
+    nextNumber = lastNum + 1
   }
 
-  return `SG/${dateStr}/${String(seq).padStart(3, '0')}`
+  const paddedNumber = String(nextNumber).padStart(3, '0')
+  return `SG/${yearMonth}/${paddedNumber}`
 }
 
 async function writeStatusEvent(sampleId: number, fromStatus: string, toStatus: string, userId: string, note?: string) {
