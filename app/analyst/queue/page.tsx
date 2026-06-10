@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { completeTest } from '@/lib/actions/samples'
@@ -46,7 +45,7 @@ export default function AnalystQueuePage() {
   const [allTests, setAllTests] = useState<Test[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedTest, setExpandedTest] = useState<number | null>(null)
-  const [resultData, setResultData] = useState<Record<number, { value: string; unit: string; method: string }>>({})
+  const [resultData, setResultData] = useState<Record<number, { remark: string }>>({})
   const [completingTests, setCompletingTests] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -108,23 +107,17 @@ export default function AnalystQueuePage() {
   const pendingTestsCount = totalTests - completedTestsCount
 
   const handleCompleteTest = async (testId: number, sampleId: number) => {
-    const data = resultData[testId]
-    if (!data?.value) {
-      setError('Please enter a result value')
-      return
-    }
-
     setCompletingTests((prev) => new Set(prev).add(testId))
     setError('')
 
     try {
-      const testObj = allTests.find((t) => t.id === testId)
+      const data = resultData[testId] || { remark: '' }
       const result = await completeTest(
         testId,
         sampleId,
-        data.value,
-        data.unit || testObj?.test?.unit || '',
-        data.method
+        data.remark || 'Test completed',
+        '',
+        ''
       )
 
       if (result.success) {
@@ -134,7 +127,7 @@ export default function AnalystQueuePage() {
         setExpandedTest(null)
         setResultData((prev) => ({
           ...prev,
-          [testId]: { value: '', unit: '', method: '' },
+          [testId]: { remark: '' },
         }))
       } else {
         setError(result.error || 'Failed to complete test')
@@ -218,15 +211,18 @@ export default function AnalystQueuePage() {
             <div className="space-y-2">
               {sample.tests.map((test) => (
                 <div key={test.id}>
-                  <div className="flex items-start gap-2 text-xs">
+                  <div
+                    className="flex items-start gap-2 text-xs cursor-pointer p-2 rounded hover:bg-gray-100 transition-colors"
+                    onClick={() => {
+                      if (test.status !== 'done') {
+                        setExpandedTest(expandedTest === test.id ? null : test.id)
+                      }
+                    }}
+                  >
                     <input
                       type="checkbox"
                       checked={test.status === 'done'}
-                      onChange={() => {
-                        if (test.status !== 'done') {
-                          setExpandedTest(expandedTest === test.id ? null : test.id)
-                        }
-                      }}
+                      readOnly
                       className="w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer accent-blue-600"
                     />
                     <div className="flex-1 min-w-0">
@@ -234,7 +230,7 @@ export default function AnalystQueuePage() {
                         className={`text-xs font-medium ${
                           test.status === 'done'
                             ? 'text-gray-600 line-through'
-                            : 'text-gray-900'
+                            : 'text-gray-900 hover:text-blue-600 hover:underline'
                         }`}
                       >
                         {test.test.name}
@@ -245,7 +241,7 @@ export default function AnalystQueuePage() {
                       {test.status === 'done' && test.resultValue && (
                         <p className="text-gray-600 text-xs mt-1">
                           <span className="font-semibold">
-                            {test.resultValue} {test.resultUnit || test.test.unit}
+                            {test.resultValue}
                           </span>
                         </p>
                       )}
@@ -256,69 +252,30 @@ export default function AnalystQueuePage() {
                   {expandedTest === test.id && test.status !== 'done' && (
                     <div className="mt-2 ml-6 p-3 bg-blue-100 border border-blue-200 rounded space-y-2">
                       <div>
-                        <Label htmlFor={`value-${test.id}`} className="text-xs">
-                          Result Value *
+                        <Label htmlFor={`remark-${test.id}`} className="text-xs">
+                          Remark (Optional)
                         </Label>
-                        <Input
-                          id={`value-${test.id}`}
-                          type="text"
-                          value={resultData[test.id]?.value || ''}
+                        <textarea
+                          id={`remark-${test.id}`}
+                          value={resultData[test.id]?.remark || ''}
                           onChange={(e) =>
                             setResultData({
                               ...resultData,
                               [test.id]: {
-                                ...resultData[test.id],
-                                value: e.target.value,
+                                remark: e.target.value,
                               },
                             })
                           }
-                          placeholder="e.g., 7.5"
-                          className="text-xs"
+                          placeholder="Add any remarks (optional)..."
+                          className="text-xs w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                          rows={2}
                           autoFocus
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`unit-${test.id}`} className="text-xs">
-                          Unit
-                        </Label>
-                        <Input
-                          id={`unit-${test.id}`}
-                          value={resultData[test.id]?.unit || test.test.unit}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [test.id]: {
-                                ...resultData[test.id],
-                                unit: e.target.value,
-                              },
-                            })
-                          }
-                          className="text-xs"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`method-${test.id}`} className="text-xs">
-                          Method (Optional)
-                        </Label>
-                        <Input
-                          id={`method-${test.id}`}
-                          value={resultData[test.id]?.method || ''}
-                          onChange={(e) =>
-                            setResultData({
-                              ...resultData,
-                              [test.id]: {
-                                ...resultData[test.id],
-                                method: e.target.value,
-                              },
-                            })
-                          }
-                          className="text-xs"
                         />
                       </div>
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleCompleteTest(test.id, test.sampleId)}
-                          disabled={!resultData[test.id]?.value || completingTests.has(test.id)}
+                          disabled={completingTests.has(test.id)}
                           size="sm"
                           className="text-xs"
                         >
