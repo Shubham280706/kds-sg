@@ -45,7 +45,7 @@ export default function AnalystQueuePage() {
   const [allTests, setAllTests] = useState<Test[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedTest, setExpandedTest] = useState<number | null>(null)
-  const [resultData, setResultData] = useState<Record<number, { remark: string }>>({})
+  const [remarks, setRemarks] = useState<Record<number, string>>({})
   const [completingTests, setCompletingTests] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
   const [showCompleted, setShowCompleted] = useState(false)
@@ -111,11 +111,11 @@ export default function AnalystQueuePage() {
     setError('')
 
     try {
-      const data = resultData[testId] || { remark: '' }
+      const remark = remarks[testId] || ''
       const result = await completeTest(
         testId,
         sampleId,
-        data.remark || 'Test completed',
+        remark || 'Test completed',
         '',
         ''
       )
@@ -125,9 +125,9 @@ export default function AnalystQueuePage() {
           prev.map((t) => (t.id === testId ? { ...t, status: 'done' } : t))
         )
         setExpandedTest(null)
-        setResultData((prev) => ({
+        setRemarks((prev) => ({
           ...prev,
-          [testId]: { remark: '' },
+          [testId]: '',
         }))
       } else {
         setError(result.error || 'Failed to complete test')
@@ -257,18 +257,16 @@ export default function AnalystQueuePage() {
                         </Label>
                         <textarea
                           id={`remark-${test.id}`}
-                          value={resultData[test.id]?.remark || ''}
-                         
-                          onChange={(e) => {
-  const value = e.target.value
-  setResultData(prev => ({
-    ...prev,
-    [test.id]: { remark: value }
-  }))
-}}
+                          value={remarks[test.id] || ''}
+                          onChange={(e) =>
+                            setRemarks((prev) => ({
+                              ...prev,
+                              [test.id]: e.target.value,
+                            }))
+                          }
                           placeholder="Add any remarks (optional)..."
-                          className="text-xs w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                          rows={2}
+                          className="w-full border rounded p-2 text-sm resize-none"
+                          rows={3}
                           autoFocus
                         />
                       </div>
@@ -284,7 +282,13 @@ export default function AnalystQueuePage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setExpandedTest(null)}
+                          onClick={() => {
+                            setExpandedTest(null)
+                            setRemarks((prev) => ({
+                              ...prev,
+                              [test.id]: '',
+                            }))
+                          }}
                           className="text-xs"
                         >
                           Cancel
