@@ -278,13 +278,19 @@ export async function getReviewHistory() {
     const db = await getDb()
 
     const events = await db.query.statusEvents.findMany({
-      where: (events, { inArray }) =>
-        inArray(events.toStatus, [
-          'approved' as any,
-          'ready_to_issue' as any,
-          'issued' as any,
-          'in_analysis' as any,
-        ]),
+    // ✅ Correct - show revision requests (under_review → in_analysis only)
+where: (events, { inArray, or, and, eq }) =>
+  or(
+    inArray(events.toStatus, [
+      'approved' as any,
+      'ready_to_issue' as any,
+      'issued' as any,
+    ]),
+    and(
+      eq(events.fromStatus, 'under_review' as any),
+      eq(events.toStatus, 'in_analysis' as any)
+    )
+  ),
       with: {
         sample: {
           with: {
