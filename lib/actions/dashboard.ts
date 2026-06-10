@@ -1,8 +1,7 @@
 'use server'
 
 import { getDb } from '@/db'
-import { samples } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { and } from 'drizzle-orm'
 import { auth } from '@/auth/authOptions'
 
 async function checkAuth() {
@@ -34,18 +33,19 @@ export async function getKPIMetrics() {
         inArray(samples.status, ['under_review' as any, 'ready_to_issue' as any]),
     })
 
-    // In analysis
+    // In analysis (assigned + in_analysis statuses)
     const inAnalysisResult = await db.query.samples.findMany({
-      where: eq(samples.status, 'in_analysis' as any),
+      where: (samples, { inArray }) =>
+        inArray(samples.status, ['assigned' as any, 'in_analysis' as any]),
     })
 
-    // Overdue (dueAt < now AND status not reported/closed)
+    // Overdue: dueAt < now AND status NOT IN (approved, ready_to_issue, issued, reported, closed)
     const now = new Date()
     const overdueResult = await db.query.samples.findMany({
       where: (samples, { lt, notInArray: notIn }) =>
         and(
           lt(samples.dueAt, now),
-          notIn(samples.status, ['reported' as any, 'closed' as any])
+          notIn(samples.status, ['approved' as any, 'ready_to_issue' as any, 'issued' as any, 'reported' as any, 'closed' as any])
         ),
     })
 

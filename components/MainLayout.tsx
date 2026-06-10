@@ -84,8 +84,13 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
           </div>
 
           <NavLink href="/dashboard" label="SG Board" />
-          <NavLink href="/samples" label="Samples" />
-          <NavLink href="/samples/inward" label="Register Sample" />
+
+          {['admin', 'reviewer'].includes(session?.user?.role || '') && (
+            <>
+              <NavLink href="/samples" label="Samples" />
+              <NavLink href="/samples/inward" label="Register Sample" />
+            </>
+          )}
 
           {['analyst', 'admin'].includes(session?.user?.role || '') && (
             <NavLink href="/analyst/queue" label="My Queue" />

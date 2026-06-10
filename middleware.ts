@@ -13,9 +13,9 @@ const PROTECTED_ROUTES: RouteConfig[] = [
   // Admin only - master data
   { path: '/admin', requiredRoles: ['admin'] },
 
-  // Sample intake and viewing - admin, analyst, and reviewer
-  { path: '/samples/inward', requiredRoles: ['admin', 'analyst', 'reviewer'] },
-  { path: '/samples', requiredRoles: ['admin', 'analyst', 'reviewer'] },
+  // Sample intake and viewing - admin and reviewer only
+  { path: '/samples/inward', requiredRoles: ['admin', 'reviewer'] },
+  { path: '/samples', requiredRoles: ['admin', 'reviewer'] },
 
   // Analyst queue - admin and analyst only
   { path: '/analyst/queue', requiredRoles: ['admin', 'analyst'] },
