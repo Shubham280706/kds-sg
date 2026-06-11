@@ -384,9 +384,9 @@ export default function SampleInwardPage() {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
                   onClick={() => setStep(1)}
                   disabled={isLoading}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ← Back
                 </Button>
@@ -468,9 +468,9 @@ export default function SampleInwardPage() {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
                   onClick={() => setStep(2)}
                   disabled={isLoading}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ← Back
                 </Button>
