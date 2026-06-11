@@ -474,9 +474,20 @@ export default function SampleInwardPage() {
                 >
                   ← Back
                 </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Registering...' : 'Register Sample'}
-                </Button>
+                <div className="space-y-2">
+                  {testAssignments.some(ta => ta.assignedTo === null) && (
+                    <p className="text-xs text-amber-600 font-medium">
+                      ℹ️ All tests must be assigned to an analyst before registering
+                    </p>
+                  )}
+                  <Button
+                    type="submit"
+                    disabled={isLoading || testAssignments.some(ta => ta.assignedTo === null)}
+                    className={testAssignments.some(ta => ta.assignedTo === null) ? 'opacity-50 cursor-not-allowed' : ''}
+                  >
+                    {isLoading ? 'Registering...' : 'Register Sample'}
+                  </Button>
+                </div>
               </div>
             </form>
           </CardContent>
