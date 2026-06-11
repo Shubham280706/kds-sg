@@ -386,7 +386,7 @@ export default function SampleInwardPage() {
                   type="button"
                   onClick={() => setStep(1)}
                   disabled={isLoading}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   ← Back
                 </Button>
