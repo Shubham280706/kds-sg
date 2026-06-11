@@ -465,25 +465,29 @@ export default function SampleInwardPage() {
                 </table>
               </div>
 
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  onClick={() => setStep(2)}
-                  disabled={isLoading}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  ← Back
-                </Button>
-                <div className="space-y-2">
-                  {testAssignments.some(ta => ta.assignedTo === null) && (
-                    <p className="text-xs text-amber-600 font-medium">
-                      ℹ️ All tests must be assigned to an analyst before registering
-                    </p>
-                  )}
+              <div className="space-y-2">
+                {testAssignments.some(ta => ta.assignedTo === null) && (
+                  <p className="text-xs text-amber-600 font-medium">
+                    ℹ️ All tests must be assigned to an analyst before registering
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    disabled={isLoading}
+                    className="px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ← Back
+                  </Button>
                   <Button
                     type="submit"
                     disabled={isLoading || testAssignments.some(ta => ta.assignedTo === null)}
-                    className={testAssignments.some(ta => ta.assignedTo === null) ? 'opacity-50 cursor-not-allowed' : ''}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      testAssignments.some(ta => ta.assignedTo === null)
+                        ? 'bg-blue-300 text-white cursor-not-allowed opacity-60'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'
+                    }`}
                   >
                     {isLoading ? 'Registering...' : 'Register Sample'}
                   </Button>
