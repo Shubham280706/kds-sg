@@ -61,7 +61,7 @@ export default function SignIn() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@lab.local"
+                placeholder="Enter Email id"
                 disabled={isLoading}
                 required
               />
@@ -89,9 +89,7 @@ export default function SignIn() {
             </Button>
           </form>
 
-          <p className="mt-4 text-xs text-gray-500 text-center">
-            Test user: admin@lab.local / demo123
-          </p>
+          
         </CardContent>
       </Card>
     </div>
