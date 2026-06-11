@@ -382,14 +382,14 @@ export default function SampleInwardPage() {
               )}
 
               <div className="flex gap-2">
-                <Button
+                <button
                   type="button"
                   onClick={() => setStep(1)}
                   disabled={isLoading}
                   className="px-4 py-2 border border-gray-400 text-gray-800 bg-white rounded-lg font-medium hover:bg-gray-100 transition-colors"
                 >
                   ← Back
-                </Button>
+                </button>
                 <Button type="submit" disabled={isLoading || !formData.categoryId || testAssignments.length === 0}>
                   Next: Assign Tests
                 </Button>
@@ -472,14 +472,14 @@ export default function SampleInwardPage() {
                   </p>
                 )}
                 <div className="flex gap-2">
-                  <Button
+                  <button
                     type="button"
                     onClick={() => setStep(2)}
                     disabled={isLoading}
                     className="px-4 py-2 border border-gray-400 text-gray-800 bg-white rounded-lg font-medium hover:bg-gray-100 transition-colors"
                   >
                     ← Back
-                  </Button>
+                  </button>
                   <Button
                     type="submit"
                     disabled={isLoading || testAssignments.some(ta => ta.assignedTo === null)}
